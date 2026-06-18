@@ -1,0 +1,52 @@
+{
+  "id": "agent-guard",
+  "name": "Agent Guard",
+  "description": "Automatic loop detection and governance via after_tool_call hook — no voluntary tool calls needed",
+  "contracts": {
+    "hooks": ["after_tool_call", "before_tool_call"]
+  },
+  "activation": {
+    "onStartup": true
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "loopWindowMs": {
+        "type": "integer",
+        "minimum": 1000,
+        "maximum": 300000,
+        "default": 120000,
+        "description": "Time window in ms to look back for loop detection"
+      },
+      "loopThreshold": {
+        "type": "integer",
+        "minimum": 2,
+        "maximum": 50,
+        "default": 3,
+        "description": "Number of repeated actions within window to trigger loop detection"
+      },
+      "maxConsecutiveErrors": {
+        "type": "integer",
+        "minimum": 2,
+        "maximum": 20,
+        "default": 3,
+        "description": "Number of consecutive errors to trigger error loop detection"
+      },
+      "blockOnLoop": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to block tool calls when a loop is detected (true = hard stop, false = warn only)"
+      },
+      "logLevel": {
+        "type": "string",
+        "enum": ["debug", "info", "warn", "error"],
+        "default": "info"
+      }
+    }
+  }
+}
