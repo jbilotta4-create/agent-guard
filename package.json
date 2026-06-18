@@ -1,0 +1,13 @@
+{
+  "name": "@asgi/agent-guard-plugin",
+  "version": "0.1.0",
+  "type": "module",
+  "openclaw": {
+    "extensions": ["./src/index.ts"],
+    "runtimeExtensions": ["./dist/index.js"],
+    "compat": {
+      "pluginApi": ">=2026.3.24-beta.2",
+      "minGatewayVersion": "2026.3.24-beta.2"
+    }
+  }
+}
