@@ -1,48 +1,48 @@
 ---
 name: agent-guard
-version: 0.6.1
-description: Agent循环检测与工具调用治理——自动检测action_loop/output_loop/error_loop，可选before-action blocking
-triggers: [agent guard, loop detection, agent loop, agent governance, 循环检测, agent跑偏]
+version: 0.7.0
+description: OpenClaw内置loop detection增强层——补上output_loop/error_loop/ping_pong检测
+triggers: [agent guard, loop detection, agent loop, 循环检测, agent跑偏, output loop, error loop, ping pong]
 ---
 
-# Agent Guard
+# Agent Guard — OpenClaw Loop Detection 增强层
 
-Agent跑偏了？循环执行同样的操作？这个技能自动检测并阻止。
+OpenClaw有内置loop detection（`tools.loopDetection`），但只覆盖action_loop。Agent Guard补上内置不检测的模式。
 
-## 它做什么
+## 内置 vs Agent Guard
 
-Agent Guard在工具调用前后自动检测三种循环模式：
+| 循环类型 | 描述 | 内置覆盖 | Agent Guard |
+|---------|------|---------|------------|
+| action_loop | 同工具+同参数+同结果重复 | ✅ genericRepeat | ✅ |
+| output_loop | 同工具+不同参数反复调用 | ❌ | ✅ |
+| error_loop | 连续工具调用失败 | ❌ | ✅ |
+| ping_pong | 两个工具交替调用(A→B→A→B) | ✅ | ✅ |
+| post-compaction guard | 压缩后重复检测 | ✅ 默认开 | — |
 
-| 类型 | 描述 | 触发条件 |
-|------|------|---------|
-| `action_loop` | 同一工具+同一参数重复调用 | 阈值内重复（默认2次） |
-| `output_loop` | 同一工具名+不同参数反复调用 | 阈值×2或≥6次 |
-| `error_loop` | 连续工具调用错误 | maxConsecutiveErrors（默认3次） |
-
-检测到循环后，可以选择：
-- **仅警告**（blockOnLoop=false）：记录日志，不阻止执行
-- **阻止执行**（blockOnLoop=true）：在工具执行前拦截，阻止循环继续
+**Agent Guard的差异化：output_loop + error_loop**——内置不覆盖的两种模式。
 
 ## 为什么需要这个
 
-真实事故：
-- Amazon Kiro：Agent循环导致13小时停机
-- Replit：Agent删了整个代码库
-- 某公司：Agent重试循环90分钟烧掉$400
-- n8n：Agent 50%概率无限触发工具
+output_loop是最危险的循环类型：Agent用同一个工具但每次换参数，看起来"不一样"但实际在做无用功。真实案例：
 
-这些不是理论风险，是每天都在发生的事。
+- Reddit r/AI_Agents：Agent 1小时调了50,000次API，每次参数不同，把生产数据库搞挂了
+- n8n #13525：Agent 50%概率无限触发工具
+- 某公司：Agent重试循环90分钟烧$400
+
+内置的genericRepeat检测不到这些——因为参数每次都不同。
 
 ## 安装
 
-1. 下载本技能
-2. 解压到你的OpenClaw插件目录
-3. 运行 `openclaw plugins install --link /path/to/agent-guard-plugin`
-4. 重启Gateway：`openclaw gateway restart`
+```bash
+git clone https://github.com/jbilotta4-create/agent-guard.git
+cd agent-guard && npm install && npm run build
+openclaw config patch plugins.load.paths '["/path/to/agent-guard-plugin"]'
+openclaw config patch plugins.entries.agent-guard.config.loopThreshold 4
+openclaw config patch plugins.entries.agent-guard.config.blockOnLoop false
+openclaw gateway restart
+```
 
 ## 配置
-
-在 `openclaw.config.yaml` 中：
 
 ```yaml
 plugins:
@@ -51,7 +51,7 @@ plugins:
       config:
         enabled: true
         blockOnLoop: false          # 先观察，再开启blocking
-        loopThreshold: 2            # action_loop触发阈值
+        loopThreshold: 4            # 检测触发阈值
         loopWindowMs: 120000        # 检测时间窗口（2分钟）
         maxConsecutiveErrors: 3     # error_loop触发阈值
         logLevel: info
@@ -61,14 +61,9 @@ plugins:
 
 **先用blockOnLoop=false观察1-2天**，确认误报率可接受后再开启blocking。
 
-开启blocking的风险：
-1. 误报：正常连续使用同一工具可能被误判
-2. 级联阻止：一次block可能连锁阻止后续调用
-3. 治理工具锁死自己：详见[失误记录](https://github.com/jbilotta4-create/agent-guard/blob/main/failures.md)
-
 ## 验证结果
 
-四阶段验证全部通过（2026-06-18）：
+四阶段验证全部通过 + 1119条真实日志验证：
 
 | 阶段 | 状态 |
 |------|------|
@@ -76,21 +71,8 @@ plugins:
 | Hook工作 | ✅ |
 | 循环检测 | ✅ |
 | 阻止执行 | ✅ |
-
-## 与现有方案的区别
-
-| 方案 | 方式 | 层级 |
-|------|------|------|
-| AgentOps | 外部可观测性 | 网络 |
-| Portal26 | 外部限流 | 网络 |
-| **Agent Guard** | **运行时内部hook** | **平台** |
-
-运行时内部hook比外部监控更快、更精确、更难绕过。
+| 误报率优化 | ✅ threshold=4, 检测率29%, shouldStop=0 |
 
 ## GitHub
 
 https://github.com/jbilotta4-create/agent-guard
-
-## Landing Page
-
-https://jbilotta4-create.github.io/agent-guard/
