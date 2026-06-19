@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Why Your Agent's Loop Detector Is Missing Half the Problem</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 720px; margin: 0 auto; padding: 2rem; line-height: 1.7; color: #1a1a1a; }
+h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+h2 { font-size: 1.4rem; margin-top: 2rem; border-bottom: 1px solid #eee; padding-bottom: 0.3rem; }
+h3 { font-size: 1.15rem; }
+code { background: #f4f4f4; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.9em; }
+pre { background: #f4f4f4; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+th, td { border: 1px solid #ddd; padding: 0.5rem 0.8rem; text-align: left; }
+th { background: #f8f8f8; }
+a { color: #0366d6; text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { margin-bottom: 2rem; font-size: 0.9rem; }
+hr { border: none; border-top: 1px solid #eee; margin: 2rem 0; }
+.meta { color: #666; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← Agent Guard</a></div>
+<h1>Why Your Agent's Loop Detector Is Missing Half the Problem</h1>
+<p class="meta">June 19, 2026 · Based on 1,119 real tool-call logs</p>
+
+<h2>The loop you can see vs. the loop you can't</h2>
+<p>Most loop detection in AI agents works the same way: watch for the same tool being called with the same parameters, over and over. OpenClaw calls it <code>genericRepeat</code>. LangChain calls it <code>LoopDetectionMiddleware</code>. The pattern is:</p>
+<pre><code>Tool: read_file("config.yaml") → same result
+Tool: read_file("config.yaml") → same result  
+Tool: read_file("config.yaml") → same result
+→ LOOP DETECTED</code></pre>
+<p>This catches the obvious case. But there's a more dangerous pattern that slips right through:</p>
+<pre><code>Tool: search("fix nginx 502") → result A
+Tool: search("nginx 502 error fix") → result B  
+Tool: search("how to fix nginx bad gateway") → result C
+Tool: search("nginx 502 troubleshooting") → result D
+Tool: search("nginx upstream timeout solution") → result E
+...
+→ 50,000 calls in one hour. Production database goes down.</code></pre>
+<p>This is <strong>output_loop</strong>: same tool, different parameters every time. The agent is stuck, but each call looks "different" because the parameters change. Your loop detector sees 5 unique calls, not 1 loop.</p>
+
+<h2>Real incident</h2>
+<p>From Reddit r/AI_Agents (2026):</p>
+<blockquote>"One agent got stuck in a loop where it'd call an API, not like the response, call again with slightly different params, repeat forever. In one hour it made 50K requests to our database API and brought down production."</blockquote>
+<p>The agent wasn't repeating the exact same call. It was <strong>exploring</strong> — trying different parameters hoping for a different outcome. But the outcome was the same: no progress toward the actual goal.</p>
+
+<h2>Why action_loop detection misses this</h2>
+<p>Action loop detection uses a triple match: <code>(tool_name, params_hash, result_hash)</code>. If any of these differ, it's not a loop.</p>
+<p>In output_loop:</p>
+<ul>
+<li><code>tool_name</code> is the same ✅</li>
+<li><code>params_hash</code> is different ❌ (different search query each time)</li>
+<li><code>result_hash</code> is different ❌ (different search results each time)</li>
+</ul>
+<p>The detector sees: "5 different calls to search" — not a loop.</p>
+
+<h2>The fix: track tool repetition, not just exact-call repetition</h2>
+<p>Agent Guard detects output_loop by tracking <strong>how many times the same tool appears in a time window</strong>, regardless of parameters. If <code>search</code> appears 6+ times in 2 minutes with different parameters each time, that's an output_loop.</p>
+<p>This is a coarser signal — it has more false positives than exact-match detection. That's why we use tiered thresholds:</p>
+<ul>
+<li>4-5 repetitions: <strong>warn</strong> (might be normal exploration)</li>
+<li>6+ repetitions: <strong>block</strong> (likely a loop)</li>
+</ul>
+<p>With 1,119 real tool calls logged, threshold=4 gives 29% detection rate with 0 false blocks. Not perfect, but it catches what action_loop detection completely misses.</p>
+
+<h2>The three-loop model</h2>
+<table>
+<tr><th>Loop type</th><th>Pattern</th><th>Detected by built-in?</th><th>Real frequency</th></tr>
+<tr><td>action_loop</td><td>Same tool + same params + same result</td><td>✅ genericRepeat</td><td>29% of detections</td></tr>
+<tr><td>output_loop</td><td>Same tool + different params</td><td>❌</td><td>~10% of detections</td></tr>
+<tr><td>error_loop</td><td>Consecutive failures</td><td>❌</td><td>~2% of detections</td></tr>
+</table>
+<p>Action_loop is the most common but also the most benign — it's usually a stuck retry. Output_loop is rarer but more dangerous — it burns through API calls and can take down production. Error_loop is the most urgent — it means something is fundamentally broken.</p>
+
+<h2>What this means for you</h2>
+<p>If you're using OpenClaw's built-in loop detection (<code>tools.loopDetection</code>), you're covered for action_loop. But you're blind to output_loop and error_loop.</p>
+<p>Options:</p>
+<ol>
+<li>Enable built-in detection + install <a href="https://github.com/jbilotta4-create/agent-guard">Agent Guard</a> for the gaps</li>
+<li>Write your own output_loop detector (it's not hard — track tool frequency in a sliding window)</li>
+<li>Accept the risk (output_loop is rare, but when it hits, it hits hard)</li>
+</ol>
+<p>The code is open source: <a href="https://github.com/jbilotta4-create/agent-guard">https://github.com/jbilotta4-create/agent-guard</a></p>
+
+<hr>
+<p class="meta"><em>Based on 1,119 real tool-call logs from an OpenClaw agent running Agent Guard v0.6-v0.7, June 2026.</em></p>
+</body>
+</html>
