@@ -1,6 +1,8 @@
-# Agent Guard — OpenClaw Plugin
+# Agent Guard — OpenClaw Loop Detection Enhancement Plugin
 
-Runtime-internal **tool call governance hook** for AI agents — not just loop detection, but the interception point for all tool misuse prevention (OWASP ASI02).
+**Enhanced loop detection** that extends OpenClaw's built-in `tools.loopDetection` with additional patterns: output-loop (same tool, different params), error-loop (consecutive failures), and ping-pong (alternating tool calls).
+
+OpenClaw's built-in loop detection covers action-loop (same tool + same params + same result) and post-compaction guard. Agent Guard adds the patterns that the built-in detection misses, and provides them as an always-on plugin (no manual `enabled: true` required).
 
 ## What it does
 
@@ -10,11 +12,12 @@ This is the **Layer 3** solution to agent self-governance: rules written in file
 
 ## Loop types detected
 
-| Type | Description | Trigger condition |
-|------|-------------|-------------------|
-| `action_loop` | Same tool + same parameters repeated | threshold repeats (default 2) |
-| `output_loop` | Same tool name with different parameters | threshold × 2 or ≥ 6 repeats |
-| `error_loop` | Consecutive tool call errors | maxConsecutiveErrors (default 3) |
+| Type | Description | Built-in covers? | Trigger condition |
+|------|-------------|-------------------|-------------------|
+| `action_loop` | Same tool + same parameters repeated | ✅ genericRepeat | threshold repeats (default 4) |
+| `output_loop` | Same tool with different parameters | ❌ | threshold × 2 or ≥ 6 repeats |
+| `error_loop` | Consecutive tool call errors | ❌ | maxConsecutiveErrors (default 3) |
+| `ping_pong` | Alternating between two tools (A→B→A→B) | ✅ pingPong | threshold cycles |
 
 ## Installation
 

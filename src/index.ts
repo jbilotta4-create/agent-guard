@@ -23,7 +23,7 @@ interface ActionRecord {
 
 interface LoopDetectionResult {
   isLoop: boolean;
-  loopType: "action_loop" | "output_loop" | "error_loop" | "none";
+  loopType: "action_loop" | "output_loop" | "error_loop" | "ping_pong" | "none";
   confidence: number;
   severity: "low" | "medium" | "high" | "critical";
   repeatedActions: number;
@@ -93,15 +93,57 @@ function detectLoop(
   }
 
   if (maxRepeat >= loopThreshold) {
+    // Tiered detection: warn at threshold, block at blockThreshold
+    // With default threshold=4, blockThreshold=6:
+    //   repeats 4-5 = warn only (likely normal work)
+    //   repeats ≥6 = shouldStop (likely real loop)
+    const blockThreshold = loopThreshold + 2; // Always 2 above detection threshold
+    const isBlockable = maxRepeat >= blockThreshold;
     return {
       isLoop: true,
       loopType: "action_loop",
-      confidence: Math.min(1.0, maxRepeat / (loopThreshold * 2)),
-      severity: maxRepeat >= loopThreshold * 3 ? "critical" : maxRepeat >= loopThreshold * 2 ? "high" : "medium",
+      confidence: Math.min(1.0, maxRepeat / blockThreshold),
+      severity: maxRepeat >= blockThreshold * 1.5 ? "critical" : isBlockable ? "high" : "medium",
       repeatedActions: maxRepeat,
       windowMs: loopWindowMs,
-      shouldStop: maxRepeat >= loopThreshold * 2,
+      shouldStop: isBlockable,
     };
+  }
+
+  // Check ping-pong loop — alternating between two tools (A→B→A→B)
+  if (windowActions.length >= 4) {
+    const recentTools = windowActions.slice(-6).map(a => a.toolName);
+    let isPingPong = true;
+    if (recentTools.length >= 4) {
+      for (let i = 2; i < recentTools.length; i++) {
+        if (recentTools[i] !== recentTools[i - 2]) {
+          isPingPong = false;
+          break;
+        }
+      }
+      // Must be alternating between two DIFFERENT tools
+      if (isPingPong && recentTools[0] === recentTools[1]) {
+        isPingPong = false;
+      }
+    } else {
+      isPingPong = false;
+    }
+
+    if (isPingPong) {
+      // Count how many full A→B cycles
+      const cycleCount = Math.floor(recentTools.length / 2);
+      const blockThreshold = loopThreshold + 2;
+      const isBlockable = cycleCount >= blockThreshold;
+      return {
+        isLoop: true,
+        loopType: "ping_pong",
+        confidence: Math.min(0.9, cycleCount / blockThreshold),
+        severity: isBlockable ? "high" : "medium",
+        repeatedActions: cycleCount,
+        windowMs: loopWindowMs,
+        shouldStop: isBlockable,
+      };
+    }
   }
 
   // Check output loop — same tool called repeatedly with DIFFERENT params
@@ -123,14 +165,17 @@ function detectLoop(
   }
 
   if (maxToolRepeat >= loopThreshold && paramVariants > 1) {
+    // Same tiered logic for output_loop
+    const blockThreshold = loopThreshold + 2;
+    const isBlockable = maxToolRepeat >= blockThreshold;
     return {
       isLoop: true,
       loopType: "output_loop",
-      confidence: Math.min(0.8, maxToolRepeat / (loopThreshold * 2)),
-      severity: maxToolRepeat >= loopThreshold * 2 ? "high" : "medium",
+      confidence: Math.min(0.8, maxToolRepeat / blockThreshold),
+      severity: isBlockable ? "high" : "medium",
       repeatedActions: maxToolRepeat,
       windowMs: loopWindowMs,
-      shouldStop: maxToolRepeat >= loopThreshold * 2,
+      shouldStop: isBlockable,
     };
   }
 
@@ -186,14 +231,14 @@ export default definePluginEntry({
   register(api) {
     // Resolve config (with defaults)
     const getConfig = () => {
-      const raw = api.getConfig?.() ?? {};
+      const raw: Record<string, unknown> = (api as Record<string, unknown>).config as Record<string, unknown> ?? {};
       return {
-        enabled: raw.enabled ?? true,
-        loopWindowMs: raw.loopWindowMs ?? 120000,
-        loopThreshold: raw.loopThreshold ?? 3,
-        maxConsecutiveErrors: raw.maxConsecutiveErrors ?? 3,
-        blockOnLoop: raw.blockOnLoop ?? false,
-        logLevel: raw.logLevel ?? "info",
+        enabled: (raw.enabled as boolean) ?? true,
+        loopWindowMs: (raw.loopWindowMs as number) ?? 120000,
+        loopThreshold: (raw.loopThreshold as number) ?? 3,
+        maxConsecutiveErrors: (raw.maxConsecutiveErrors as number) ?? 3,
+        blockOnLoop: (raw.blockOnLoop as boolean) ?? false,
+        logLevel: (raw.logLevel as string) ?? "info",
       };
     };
 
