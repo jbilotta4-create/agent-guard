@@ -33,6 +33,8 @@ This is the **Layer 3** solution to agent self-governance: rules written in file
 | `error_loop` | Same tool failing consecutively | maxConsecutiveErrors (default 3) |
 | `error_cascade` | Different tools all failing (agent pivoting without solving) | maxConsecutiveErrors across 2+ tools |
 | `pingPong` | Alternating between two tools without progress (A→B→A→B) | 2+ alternating patterns in window |
+| `search_loop` | Repeated searches without finding new information (semantic repetition) | 6+ search calls in window |
+| `write_loop` | Repeated writes/edits to the same file (oscillation) | 4+ writes to same file |
 
 ## How this relates to OpenClaw's built-in loop detection
 
@@ -45,6 +47,7 @@ Agent Guard complements the built-in:
 | Default state | OFF (rolling), ON (post-compaction only) | ON (all detectors) |
 | Detection speed | 10-20 repeats | 3-5 repeats |
 | output_loop | ❌ | ✅ (with result filtering) |
+| search_loop | ❌ | ✅ (v0.10.0: semantic repetition) |
 | error_loop | ❌ | ✅ |
 | error_cascade | ❌ | ✅ |
 | pingPong | ✅ | ✅ |
