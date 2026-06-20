@@ -24,6 +24,7 @@ interface ActionRecord {
   timestamp: number;
   isError: boolean;
   sessionId: string;
+  resultNontrivial?: boolean;  // v0.9.0: track if tool produced meaningful output
 }
 
 interface LoopDetectionResult {
@@ -110,9 +111,31 @@ function detectLoop(
   }
 
   // Check output loop — same tool called repeatedly with DIFFERENT params
+  // v0.9.0: Exclude calls that produced nontrivial results (reduces exec false positives)
   const toolCounts: Map<string, number> = new Map();
   for (const a of windowActions) {
-    toolCounts.set(a.toolName, (toolCounts.get(a.toolName) || 0) + 1);
+    // Skip calls that produced meaningful results — they're productive work, not loops
+    if (a.resultNontrivial === false) {
+      toolCounts.set(a.toolName, (toolCounts.get(a.toolName) || 0) + 1);
+    } else {
+      // Productive call — don't count toward output_loop
+      // But still track for total count
+    }
+  }
+
+  // If we don't have enough nontrivial-false calls for output_loop,
+  // fall back to counting all calls (backward compat for sessions without resultNontrivial data)
+  let hasNontrivialData = false;
+  for (const a of windowActions) {
+    if (a.resultNontrivial !== undefined) { hasNontrivialData = true; break; }
+  }
+
+  if (!hasNontrivialData || toolCounts.size === 0) {
+    // Legacy mode or all calls were productive — use original counting
+    toolCounts.clear();
+    for (const a of windowActions) {
+      toolCounts.set(a.toolName, (toolCounts.get(a.toolName) || 0) + 1);
+    }
   }
 
   let maxToolRepeat = 0;
@@ -155,6 +178,7 @@ function recordAction(
   toolName: string,
   params: Record<string, unknown>,
   isError: boolean,
+  resultNontrivial?: boolean,
 ): void {
   const now = Date.now();
   const record: ActionRecord = {
@@ -163,6 +187,7 @@ function recordAction(
     timestamp: now,
     isError,
     sessionId,
+    resultNontrivial: resultNontrivial ?? true,
   };
 
   const history = actionHistory.get(sessionId) || [];
@@ -458,7 +483,12 @@ export default definePluginEntry({
         const result = event.result;
 
         // --- Loop Detection (existing) ---
-        recordAction(sessionId, toolName, params, isError);
+        // v0.9.0: Pass result nontriviality to reduce output_loop false positives
+        const resultStr = typeof result === "string" ? result : JSON.stringify(result ?? "");
+        const isResultNontrivial = resultStr && resultStr.trim().length > 10
+          && !/^(no changes|already up to date|nothing to do|skipped|\{\}|\[\])$/i.test(resultStr.trim());
+
+        recordAction(sessionId, toolName, params, isError, isResultNontrivial);
 
         const loopResult = detectLoop(
           sessionId,
