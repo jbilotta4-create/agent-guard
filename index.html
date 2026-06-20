@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agent Guard — Stop AI Agents From Running In Loops</title>
-    <meta name="description" content="Agent Guard detects and blocks tool call loops in AI agents before they waste your API budget. Open source plugin for OpenClaw.">
+    <meta name="description" content="Agent Guard detects and blocks tool call loops + verifies state after execution in AI agents. Catches silent no-ops where 200 OK means nothing happened. Open source plugin for OpenClaw.">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -98,7 +98,7 @@
         <div class="hero">
             <h1>Agent Guard</h1>
             <div class="subtitle">Stop AI agents from running in loops.</div>
-            <div class="tagline">Detect. Block. Protect your API budget.</div>
+            <div class="tagline">Detect loops. Verify state. Catch silent no-ops.</div>
         </div>
         
         <!-- Problem -->
@@ -154,6 +154,14 @@
             
             <div class="step">
                 <div class="step-num">4</div>
+                <div class="step-content">
+                    <h3>Verify state after execution</h3>
+                    <p>Tool returned 200 OK but nothing actually happened? Agent Guard's after_tool_call hook checks: file exists after write, content matches after edit, exit code is zero after exec. Catches silent no-ops that other tools miss.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-num">5</div>
                 <div class="step-content">
                     <h3>Self-governance against over-blocking</h3>
                     <p>If Agent Guard itself blocks too many consecutive calls, it auto-downgrades to detection-only mode. Governance tools need governance too.</p>
@@ -218,6 +226,11 @@
       <h3 style="color: #666;">📖 Blog</h3>
       <p><a href="blog/output-loop.html" style="color: #0366d6; font-size: 1.1rem;">Why Your Agent's Loop Detector Is Missing Half the Problem</a></p>
       <p style="color: #999; font-size: 0.9rem;">How output_loop and error_loop slip past action_loop detection</p>
+    </div>
+
+    <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #eee;">
+      <p><a href="blog/agent-incidents-2026.html" style="color: #0366d6; font-size: 1.1rem;">2026年AI Agent失控事故全景</a></p>
+      <p style="color: #999; font-size: 0.9rem;">6 real incidents, 3 patterns, 5-layer reliability stack — why existing solutions aren't enough</p>
     </div>
 
 </body>
