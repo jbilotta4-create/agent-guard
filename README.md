@@ -29,7 +29,7 @@ This is the **Layer 3** solution to agent self-governance: rules written in file
 | Type | Description | Trigger condition |
 |------|-------------|-------------------|
 | `action_loop` | Same tool + same parameters repeated | threshold repeats (default 2) |
-| `output_loop` | Same tool name with different parameters | threshold × 2 or ≥ 6 repeats |
+| `output_loop` | Same tool name with different parameters, no meaningful output | threshold × 2 or ≥ 6 repeats (v0.9.0: productive calls excluded) |
 | `error_loop` | Consecutive tool call errors | maxConsecutiveErrors (default 3) |
 
 ## Quick Start
@@ -103,6 +103,14 @@ Four-stage validation completed on 2026-06-18:
 | Blocking tool calls | ✅ | before_tool_call_blocked record, tool execution prevented |
 
 Key test: Two consecutive `write` calls with identical path+content → `action_loop` detected (repeats=2, severity=high) → tool call blocked → blockReason returned instead of normal execution result.
+
+## v0.9.0 — Reduced output_loop false positives
+
+Analysis of 2,500 hook-proof records revealed that 194 `output_loop` detections on `exec` were mostly **normal sequential shell commands** (git status → git diff → git add → git commit → git push), not real loops.
+
+Fix: `output_loop` detection now tracks whether each tool call produced a meaningful result. Calls that returned nontrivial output are excluded from loop counting. This eliminates the most common false positive pattern while preserving detection of genuine output loops where the agent repeatedly calls the same tool and gets no useful result.
+
+Real user evidence: [OpenClaw #76938](https://github.com/openclaw/openclaw/issues/76938) (agent loops after compaction), [#71273](https://github.com/openclaw/openclaw/issues/71273) (Kimi Code infinite tool call loop).
 
 ## Architecture
 
