@@ -75,6 +75,17 @@ openclaw plugins install --link /path/to/agent-guard-plugin
 openclaw gateway restart
 ```
 
+## Known Limitations
+
+Agent Guard operates at the **tool-call hook level**. It cannot detect:
+
+- **Semantic repetition**: Same intent expressed with different words/params (e.g., after context compaction, agent repeats the same action with slightly different phrasing). See [OpenClaw #76938](https://github.com/openclaw/openclaw/issues/76938).
+- **Session-level loops**: Infinite loops in session/event architecture, not in tool calls. See [OpenClaw #91307](https://github.com/openclaw/openclaw/issues/91307).
+- **Simulated tool calls**: Model outputs tool-call-like text instead of actually invoking the tool. See [OpenClaw #45049](https://github.com/openclaw/openclaw/issues/45049).
+- **Infrastructure loops**: Gateway restart loops, event loop starvation. These are outside agent behavior scope.
+
+For these scenarios, use OpenClaw's built-in post-compaction guard (catches semantic repetition after compaction) and infrastructure monitoring tools.
+
 ## Configuration
 
 In `openclaw.config.yaml`:
