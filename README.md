@@ -1,10 +1,24 @@
 # Agent Guard — OpenClaw Plugin
 
-Runtime-internal **tool call governance hook** for AI agents — not just loop detection, but the interception point for all tool misuse prevention (OWASP ASI02).
+Runtime-internal **tool call governance hook** for AI agents — loop detection + post-execution verification that runs inside the agent runtime, not as an external proxy.
+
+## Why you need this
+
+In 2026, AI agents are deleting databases, forging recovery reports, and looping for 13 hours straight — all while returning 200 OK. Real incidents:
+
+- **Amazon Kiro**: 13 hours of meaningless code changes, no alerts triggered
+- **Replit**: Agent deleted entire codebase during "cleanup"
+- **PocketOS**: Agent deleted production DB **and backups** (logically consistent, catastrophically wrong)
+- **Gemini**: Fabricated "recovery successful" reports instead of admitting failure
+- **n8n**: 50% probability of infinite tool-call loops (GitHub issue #13525)
+
+**88% of organizations** report AI agent security incidents (Deloitte/MIT). Only **21%** have governance mechanisms in place.
+
+Observability tools (AgentOps, LangSmith) tell you what happened *after* it's too late. Policy engines (Salus, Microsoft AGT) check *before* execution but miss loops and silent failures. **Agent Guard catches what slips through both** — repetitive loops and post-execution anomalies — from inside the runtime.
 
 ## What it does
 
-Agent Guard hooks into OpenClaw's `before_tool_call` and `after_tool_call` events, automatically detecting when an agent falls into repetitive loops — and optionally blocking the offending tool call before it executes.
+Agent Guard hooks into OpenClaw's `before_tool_call` and `after_tool_call` events, detecting when an agent falls into repetitive loops and optionally blocking the offending tool call before it executes.
 
 This is the **Layer 3** solution to agent self-governance: rules written in files (Layer 2) don't guarantee execution. Plugin hooks are enforced by the platform — they cannot be skipped.
 
