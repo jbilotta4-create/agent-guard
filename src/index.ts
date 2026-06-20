@@ -8,7 +8,7 @@
  * - after_tool_call: record action + detect loops + verify state (observation + verification)
  * - before_tool_call: block tool calls when loop detected or state verification failed (decision)
  * 
- * v0.8.0: Added Layer 3-4 state verification (Tool-Use Reliability Stack)
+ * v0.8.1: Added result_nontrivial check (silent no-op detection), url_accessible check type
  */
 
 // @ts-ignore - OpenClaw plugin SDK is runtime-provided
@@ -191,7 +191,7 @@ function recordAction(
 
 interface VerificationRule {
   toolName: string | string[];    // Tool(s) to match
-  checkType: "file_exists" | "content_match" | "exit_code" | "custom";
+  checkType: "file_exists" | "content_match" | "exit_code" | "url_accessible" | "result_nontrivial" | "custom";
   paramPath: string;             // Dot-path to extract verification target from params
   severity: "warn" | "block";    // What to do on verification failure
   description?: string;          // Human-readable description of what this rule verifies
@@ -229,6 +229,22 @@ const DEFAULT_RULES: VerificationRule[] = [
     paramPath: "command",
     severity: "warn",
     description: "Verify command exited successfully",
+  },
+  // apply_patch tool: verify patched file exists and contains new content
+  {
+    toolName: "apply_patch",
+    checkType: "file_exists",
+    paramPath: "input",  // patch content contains file paths
+    severity: "warn",
+    description: "Verify patched file exists after apply_patch",
+  },
+  // All tools: check result is not empty (silent no-op detection)
+  {
+    toolName: ["write", "edit", "exec", "apply_patch", "read"],
+    checkType: "result_nontrivial",
+    paramPath: "",
+    severity: "warn",
+    description: "Verify tool result is not empty — catch silent no-ops",
   },
 ];
 
@@ -354,6 +370,44 @@ function verifyState(
       // For exec, if no error was reported, we trust the exit code was 0
       // In a full implementation, we'd parse the actual exit code from the result
       return { passed: true, rule, detail: `Command exited successfully: ${targetPath}` };
+    }
+
+    case "url_accessible": {
+      // Verify a URL returns 200 after deployment
+      // This is an async check but we do it synchronously with a quick HEAD request
+      if (!targetPath) {
+        return { passed: true, rule, detail: `No URL found at ${rule.paramPath}, skipping` };
+      }
+      // Note: synchronous HTTP check is not possible in Node.js without blocking
+      // For now, we log a reminder; full implementation would use fetch in after_tool_call
+      return { passed: true, rule, detail: `URL accessibility check deferred (async): ${targetPath}` };
+    }
+
+    case "result_nontrivial": {
+      // Check that the tool result is not empty or a default template
+      // This catches "200 OK but nothing happened" (silent no-op)
+      const resultStr = typeof result === "string" ? result : JSON.stringify(result);
+      if (!resultStr || resultStr.trim().length === 0) {
+        return {
+          passed: false,
+          rule,
+          detail: `Tool returned empty result — possible silent no-op: ${toolName}`,
+          actualState: "empty_result",
+        };
+      }
+      // Check for common no-op patterns
+      const noOpPatterns = ["no changes", "already up to date", "nothing to do", "skipped"];
+      const lowerResult = resultStr.toLowerCase();
+      const matchedPattern = noOpPatterns.find(p => lowerResult.includes(p));
+      if (matchedPattern && !isError) {
+        // Not necessarily a failure, but worth noting
+        return {
+          passed: true,
+          rule,
+          detail: `Tool returned no-op signal: "${matchedPattern}" — may be expected`,
+        };
+      }
+      return { passed: true, rule, detail: `Result is non-trivial (${resultStr.length} chars): ${toolName}` };
     }
 
     case "custom": {

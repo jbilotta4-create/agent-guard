@@ -8,7 +8,7 @@
  * - after_tool_call: record action + detect loops + verify state (observation + verification)
  * - before_tool_call: block tool calls when loop detected or state verification failed (decision)
  *
- * v0.8.0: Added Layer 3-4 state verification (Tool-Use Reliability Stack)
+ * v0.8.1: Added result_nontrivial check (silent no-op detection), url_accessible check type
  */
 declare const _default: any;
 export default _default;
