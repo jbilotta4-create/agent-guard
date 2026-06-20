@@ -1,6 +1,8 @@
-# Agent Guard — OpenClaw Plugin
+# Agent Guard — Loop Detection & Runtime Governance for AI Agents
 
-Runtime-internal **tool call governance hook** for AI agents — loop detection + post-execution verification that runs inside the agent runtime, not as an external proxy.
+Runtime-internal **tool call governance hook** — loop detection + post-execution verification that runs inside the agent runtime, not as an external proxy.
+
+> **OpenClaw plugin** — installs in 30 seconds. If you use a different agent framework, the [detection logic](src/index.ts) is open-source and portable.
 
 ## Why you need this
 
@@ -30,7 +32,21 @@ This is the **Layer 3** solution to agent self-governance: rules written in file
 | `output_loop` | Same tool name with different parameters | threshold × 2 or ≥ 6 repeats |
 | `error_loop` | Consecutive tool call errors | maxConsecutiveErrors (default 3) |
 
-## Installation
+## Quick Start
+
+```bash
+# 1. Install
+openclaw plugins install --link /path/to/agent-guard-plugin
+
+# 2. Restart
+openclaw gateway restart
+
+# 3. That's it — loop detection is on by default (blockOnLoop=false, observe-only)
+```
+
+After 1-2 days, check `hook-proof.jsonl` for detected loops. Then consider enabling `blockOnLoop: true`.
+
+## Installation (detailed)
 
 ```bash
 openclaw plugins install --link /path/to/agent-guard-plugin
