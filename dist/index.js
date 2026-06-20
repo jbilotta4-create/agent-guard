@@ -140,6 +140,41 @@ function detectLoop(sessionId, loopWindowMs, loopThreshold, maxConsecutiveErrors
             shouldStop: maxToolRepeat >= loopThreshold * 2,
         };
     }
+    // Check pingPong — alternating between two tools (A→B→A→B)
+    // v0.9.1: Added to match OpenClaw built-in capability
+    if (windowActions.length >= 4) {
+        let pingPongCount = 0;
+        for (let i = 0; i < windowActions.length - 1; i++) {
+            const curr = windowActions[i];
+            const next = windowActions[i + 1];
+            // Check if two consecutive calls alternate between two different tools
+            if (curr.toolName !== next.toolName) {
+                // Look ahead to see if the pattern continues
+                if (i + 2 < windowActions.length && i + 3 < windowActions.length) {
+                    const a = windowActions[i];
+                    const b = windowActions[i + 1];
+                    const c = windowActions[i + 2];
+                    const d = windowActions[i + 3];
+                    if (a.toolName === c.toolName && b.toolName === d.toolName && a.toolName !== b.toolName) {
+                        pingPongCount++;
+                    }
+                }
+            }
+        }
+        // If we see 2+ A→B→A→B patterns in the window, it's a pingPong
+        if (pingPongCount >= 2) {
+            return {
+                isLoop: true,
+                loopType: "pingPong",
+                confidence: Math.min(0.9, pingPongCount / 4),
+                severity: pingPongCount >= 4 ? "high" : "medium",
+                repeatedActions: pingPongCount * 2,
+                windowMs: loopWindowMs,
+                shouldStop: pingPongCount >= 4,
+                detail: `Ping-pong pattern detected: agent alternating between tools without progress`,
+            };
+        }
+    }
     return {
         isLoop: false,
         loopType: "none",
@@ -465,6 +500,7 @@ export default definePluginEntry({
                         output_loop: "Your tool calls are producing varied but unproductive output. Consider changing your approach entirely.",
                         error_loop: "The same tool keeps failing. Check the error message and try a different strategy.",
                         error_cascade: "Multiple different tools are failing. This may indicate an environment or permission issue — check your setup before retrying.",
+                        pingPong: "You're alternating between two tools without progress. Break the cycle by choosing one approach and sticking with it.",
                     };
                     const hint = recoveryHints[loopResult.loopType] || "";
                     api.logger.warn?.(`Agent Guard: BLOCKING tool call [${event.toolName}] — loop detected (${loopResult.loopType}, repeats=${loopResult.repeatedActions}, severity=${loopResult.severity})`);
