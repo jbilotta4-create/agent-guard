@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What Real Agent Loops Look Like — Evidence from OpenClaw Issues</title>
+<style>
+body { font-family: Georgia, 'Times New Roman', serif; max-width: 720px; margin: 0 auto; padding: 2rem; line-height: 1.7; color: #1a1a1a; }
+h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+h2 { font-size: 1.3rem; margin-top: 2rem; color: #333; }
+.meta { color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
+code { background: #f4f4f4; padding: 0.15em 0.4em; border-radius: 3px; font-size: 0.9em; }
+pre { background: #f4f4f4; padding: 1rem; border-radius: 6px; overflow-x: auto; font-size: 0.85em; line-height: 1.5; }
+.issue { border-left: 3px solid #e74c3c; padding-left: 1rem; margin: 1.5rem 0; }
+.issue-title { font-weight: bold; color: #c0392b; }
+.stat { font-size: 1.1rem; font-weight: bold; color: #2c3e50; }
+.takeaway { background: #f0f7ff; border-left: 3px solid #3498db; padding: 0.8rem 1rem; margin: 1.5rem 0; }
+a { color: #2980b9; }
+.back { margin-top: 3rem; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+
+<h1>What Real Agent Loops Look Like</h1>
+<p class="meta">Evidence from OpenClaw GitHub Issues &middot; June 2026</p>
+
+<p>Most discussions about AI agent loops are theoretical. "Agents might loop." "We should detect loops." But what do real agent loops actually look like in production?</p>
+
+<p>I searched the OpenClaw GitHub repository for real issues reported by real users. Here's what I found.</p>
+
+<h2>The Issues</h2>
+
+<div class="issue">
+<p class="issue-title">#71273 — Kimi Code model enters infinite tool call loop</p>
+<p>The model repeatedly calls the same tools with identical parameters instead of generating a final answer. This is the textbook case: same tool, same params, no progress.</p>
+<p><strong>Loop type:</strong> <code>action_loop</code> — the simplest and most detectable kind.</p>
+</div>
+
+<div class="issue">
+<p class="issue-title">#76938 — Context compaction causes agent to loop after truncation</p>
+<p>When session history grows large, OpenClaw truncates messages. The agent loses context and starts looping — giving irrelevant answers or repeating the same response. The agent isn't calling the same tool with the same params; it's calling different tools with different params, but all failing to make progress because it forgot what it already did.</p>
+<p><strong>Loop type:</strong> <code>output_loop</code> — same tool name, different params, no meaningful output. This is harder to detect because the literal parameters differ.</p>
+</div>
+
+<div class="issue">
+<p class="issue-title">#75923 — Cross-tool consecutive error cascade</p>
+<p>The agent keeps pivoting across different tools while every completed tool call fails. It tries tool A (fails), then tool B (fails), then tool C (fails) — each pivot looks like "trying something new" but the underlying problem is never addressed.</p>
+<p><strong>Loop type:</strong> <code>error_cascade</code> — different tools, all failing. This is the hardest to detect because each individual failure looks reasonable.</p>
+</div>
+
+<div class="issue">
+<p class="issue-title">#91307 — Feishu DM session enters infinite loop after subagent announce</p>
+<p>A subagent announce triggers new DIRECT runs without user input, creating an infinite loop at the session/event level. This isn't a tool-call loop — it's a session architecture loop.</p>
+<p><strong>Loop type:</strong> Session-level loop. Outside the scope of tool-call hooks.</p>
+</div>
+
+<h2>What My Own Data Shows</h2>
+
+<p>Agent Guard has been running on my own OpenClaw sessions, collecting data in <code>hook-proof.jsonl</code>. After 2,500 tool calls:</p>
+
+<ul>
+<li><span class="stat">485</span> loop detections</li>
+<li><span class="stat">194</span> of those were <code>output_loop</code> on <code>exec</code> — and most were <strong>false positives</strong></li>
+<li><span class="stat">4</span> actual blocks — all from one session (the self-lock incident)</li>
+<li><span class="stat">0</span> genuine loops that weren't caught</li>
+</ul>
+
+<p>The exec false positive problem is real. Running <code>git status → git diff → git add → git commit → git push → curl verify</code> is 6 exec calls with different params. That triggers <code>output_loop</code> detection even though each call is productive and produces different output.</p>
+
+<p>v0.9.0 fix: track whether each tool call produced meaningful output. If it did, exclude it from output_loop counting. This reduced false positives without missing real loops.</p>
+
+<h2>The Detection Spectrum</h2>
+
+<p>Not all loops are equal. Here's what the evidence shows:</p>
+
+<table style="width:100%; border-collapse:collapse; margin:1rem 0;">
+<tr style="border-bottom:1px solid #ddd;"><th style="text-align:left; padding:0.5rem;">Type</th><th style="text-align:left; padding:0.5rem;">Detectable?</th><th style="text-align:left; padding:0.5rem;">False Positive Risk</th></tr>
+<tr style="border-bottom:1px solid #eee;"><td style="padding:0.5rem;"><code>action_loop</code></td><td style="padding:0.5rem;">Easy</td><td style="padding:0.5rem;">Low</td></tr>
+<tr style="border-bottom:1px solid #eee;"><td style="padding:0.5rem;"><code>error_loop</code></td><td style="padding:0.5rem;">Easy</td><td style="padding:0.5rem;">Low</td></tr>
+<tr style="border-bottom:1px solid #eee;"><td style="padding:0.5rem;"><code>error_cascade</code></td><td style="padding:0.5rem;">Medium</td><td style="padding:0.5rem;">Medium</td></tr>
+<tr style="border-bottom:1px solid #eee;"><td style="padding:0.5rem;"><code>output_loop</code></td><td style="padding:0.5rem;">Hard</td><td style="padding:0.5rem;">High (without result filtering)</td></tr>
+<tr><td style="padding:0.5rem;">Session-level loop</td><td style="padding:0.5rem;">Outside tool-hook scope</td><td style="padding:0.5rem;">N/A</td></tr>
+</table>
+
+<div class="takeaway">
+<strong>Key insight:</strong> The easier a loop is to detect, the less damage it causes (because the agent is obviously stuck). The harder a loop is to detect, the more dangerous it is (because the agent looks like it's working). The most dangerous loops are the ones where the agent appears productive but isn't making real progress.
+</div>
+
+<h2>What This Means for Agent Guard</h2>
+
+<p>Agent Guard's ability boundary is now clear:</p>
+
+<ul>
+<li><strong>Can detect:</strong> action_loop, error_loop, error_cascade, output_loop (with result filtering)</li>
+<li><strong>Cannot detect:</strong> session-level loops, simulated tool calls, semantic repetition (same intent, different words)</li>
+<li><strong>Should detect next:</strong> semantic repetition — the #76938 scenario where the agent repeats the same action with slightly different wording after context loss</li>
+</ul>
+
+<p>v0.9.1 adds <code>error_cascade</code> detection and recovery suggestions. When Agent Guard blocks a tool call, it now tells the agent <em>why</em> and <em>what to try instead</em> — not just "you're looping" but "multiple different tools are failing, check your environment before retrying."</p>
+
+<h2>The Honest Numbers</h2>
+
+<p>I don't have a false positive rate with confidence intervals. I have 2,500 records from my own sessions, and I know the exec output_loop detections were mostly wrong. That's one data point, not a benchmark.</p>
+
+<p>What I can say: the real issues from OpenClaw's GitHub confirm that agent loops are a real production problem, not a theoretical concern. And the hardest loops to detect — the ones where the agent looks busy but isn't progressing — are exactly the ones that waste the most resources.</p>
+
+<div class="takeaway">
+If you're building with AI agents, the question isn't "will my agent loop?" It's "when my agent loops, how quickly will I notice?" Most loops aren't caught until the bill arrives.
+</div>
+
+<p class="back"><a href="/agent-guard/">← Agent Guard</a> &middot; <a href="/agent-guard/blog/output-loop.html">Previous: The Output Loop Problem</a></p>
+
+</body>
+</html>
