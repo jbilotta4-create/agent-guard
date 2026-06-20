@@ -28,9 +28,31 @@ This is the **Layer 3** solution to agent self-governance: rules written in file
 
 | Type | Description | Trigger condition |
 |------|-------------|-------------------|
-| `action_loop` | Same tool + same parameters repeated | threshold repeats (default 2) |
+| `action_loop` | Same tool + same parameters repeated | threshold repeats (default 3) |
 | `output_loop` | Same tool name with different parameters, no meaningful output | threshold × 2 or ≥ 6 repeats (v0.9.0: productive calls excluded) |
-| `error_loop` | Consecutive tool call errors | maxConsecutiveErrors (default 3) |
+| `error_loop` | Same tool failing consecutively | maxConsecutiveErrors (default 3) |
+| `error_cascade` | Different tools all failing (agent pivoting without solving) | maxConsecutiveErrors across 2+ tools |
+| `pingPong` | Alternating between two tools without progress (A→B→A→B) | 2+ alternating patterns in window |
+
+## How this relates to OpenClaw's built-in loop detection
+
+OpenClaw has built-in loop detection (`tools.loopDetection`) that covers `genericRepeat`, `knownPollNoProgress`, and `pingPong` — but it's **disabled by default** and uses high thresholds (warning at 10, critical at 20).
+
+Agent Guard complements the built-in:
+
+| Feature | OpenClaw Built-in | Agent Guard |
+|---------|------------------|-------------|
+| Default state | OFF (rolling), ON (post-compaction only) | ON (all detectors) |
+| Detection speed | 10-20 repeats | 3-5 repeats |
+| output_loop | ❌ | ✅ (with result filtering) |
+| error_loop | ❌ | ✅ |
+| error_cascade | ❌ | ✅ |
+| pingPong | ✅ | ✅ |
+| Post-compaction guard | ✅ (excellent) | ❌ (plugin scope) |
+| State verification | ❌ | ✅ (5 check types) |
+| Recovery suggestions | ❌ | ✅ |
+
+**Use both.** OpenClaw's post-compaction guard is irreplaceable. Agent Guard catches loops earlier and covers types the built-in misses.
 
 ## Quick Start
 
