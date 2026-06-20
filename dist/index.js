@@ -43,16 +43,25 @@ function detectLoop(sessionId, loopWindowMs, loopThreshold, maxConsecutiveErrors
     const history = actionHistory.get(sessionId) || [];
     const windowActions = history.filter(a => now - a.timestamp < loopWindowMs);
     // Check error loop first (most urgent)
+    // v0.9.1: Distinguish single-tool error loop from cross-tool error cascade
     const errorCount = consecutiveErrors.get(sessionId) || 0;
     if (errorCount >= maxConsecutiveErrors) {
+        // Check if errors are across different tools (cascade) or same tool (loop)
+        const errorActions = windowActions.filter(a => a.isError);
+        const errorTools = new Set(errorActions.map(a => a.toolName));
+        const isCascade = errorTools.size >= 2; // 2+ different tools failing = cascade
+        const loopType = isCascade ? "error_cascade" : "error_loop";
         return {
             isLoop: true,
-            loopType: "error_loop",
+            loopType,
             confidence: Math.min(1.0, errorCount / (maxConsecutiveErrors * 2)),
             severity: errorCount >= maxConsecutiveErrors * 2 ? "critical" : "high",
             repeatedActions: errorCount,
             windowMs: loopWindowMs,
             shouldStop: true,
+            detail: isCascade
+                ? `Cross-tool error cascade: ${errorTools.size} different tools failing (${Array.from(errorTools).join(", ")})`
+                : `Single-tool error loop: ${Array.from(errorTools)[0]} failing repeatedly`,
         };
     }
     // Check action loop — same tool+params repeated
@@ -450,10 +459,18 @@ export default definePluginEntry({
             if (config.blockOnLoop) {
                 const loopResult = detectLoop(sessionId, config.loopWindowMs, config.loopThreshold, config.maxConsecutiveErrors);
                 if (loopResult.isLoop && loopResult.shouldStop) {
+                    // v0.9.1: Add recovery suggestion based on loop type
+                    const recoveryHints = {
+                        action_loop: "Try different parameters or a different tool to achieve the same goal.",
+                        output_loop: "Your tool calls are producing varied but unproductive output. Consider changing your approach entirely.",
+                        error_loop: "The same tool keeps failing. Check the error message and try a different strategy.",
+                        error_cascade: "Multiple different tools are failing. This may indicate an environment or permission issue — check your setup before retrying.",
+                    };
+                    const hint = recoveryHints[loopResult.loopType] || "";
                     api.logger.warn?.(`Agent Guard: BLOCKING tool call [${event.toolName}] — loop detected (${loopResult.loopType}, repeats=${loopResult.repeatedActions}, severity=${loopResult.severity})`);
                     return {
                         block: true,
-                        blockReason: `Agent Guard: Loop detected (${loopResult.loopType}, ${loopResult.repeatedActions} repeats in ${loopResult.windowMs}ms window, severity=${loopResult.severity}). Stopping to prevent resource waste.`,
+                        blockReason: `Agent Guard: Loop detected (${loopResult.loopType}, ${loopResult.repeatedActions} repeats in ${loopResult.windowMs}ms window, severity=${loopResult.severity}). ${loopResult.detail || ""} ${hint}`,
                     };
                 }
             }
