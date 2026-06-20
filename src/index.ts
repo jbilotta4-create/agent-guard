@@ -30,7 +30,7 @@ interface ActionRecord {
 
 interface LoopDetectionResult {
   isLoop: boolean;
-  loopType: "action_loop" | "output_loop" | "error_loop" | "error_cascade" | "pingPong" | "none";
+  loopType: "action_loop" | "output_loop" | "error_loop" | "error_cascade" | "search_loop" | "write_loop" | "pingPong" | "none";
   confidence: number;
   severity: "low" | "medium" | "high" | "critical";
   repeatedActions: number;
@@ -208,6 +208,60 @@ function detectLoop(
         detail: `Ping-pong pattern detected: agent alternating between tools without progress`,
       };
     }
+  }
+
+  // v0.10.0: Intent pattern detection — semantic repetition
+  // Detects "same intent, different params" patterns that hash-based detection misses
+
+  // Pattern 1: search_loop — repeated web_search/web_fetch calls
+  const searchTools = new Set(["web_search", "web_fetch", "browser"]);
+  const searchActions = windowActions.filter(a => searchTools.has(a.toolName) && !a.isError);
+  // Filter out productive searches (result_nontrivial=true means useful output)
+  const unproductiveSearches = searchActions.filter(a => a.resultNontrivial === false);
+  const searchRepeatCount = unproductiveSearches.length >= 4 ? unproductiveSearches.length : 
+                             searchActions.length >= 6 ? searchActions.length : 0;
+  if (searchRepeatCount >= 6) {
+    const isUnproductive = unproductiveSearches.length >= 4;
+    return {
+      isLoop: true,
+      loopType: "search_loop",
+      confidence: Math.min(0.85, searchRepeatCount / 12),
+      severity: searchRepeatCount >= 10 ? "high" : "medium",
+      repeatedActions: searchRepeatCount,
+      windowMs: loopWindowMs,
+      shouldStop: searchRepeatCount >= 10,
+      detail: isUnproductive
+        ? `Repeated searches producing no useful results (${searchRepeatCount} in window)`
+        : `Many searches without clear progress (${searchRepeatCount} in window) — may be semantic repetition`,
+    };
+  }
+
+  // Pattern 2: write_loop — repeated write/edit to the same file
+  const writeActions = windowActions.filter(a => 
+    (a.toolName === "write" || a.toolName === "edit") && !a.isError
+  );
+  // Group by file path (extract from paramsHash — paths are part of the hash)
+  const writeFileCounts: Map<string, number> = new Map();
+  for (const a of writeActions) {
+    // Use paramsHash to detect same-file writes (same path = similar hash prefix)
+    const key = a.paramsHash;
+    writeFileCounts.set(key, (writeFileCounts.get(key) || 0) + 1);
+  }
+  let maxFileWrites = 0;
+  for (const [, count] of writeFileCounts) {
+    if (count > maxFileWrites) maxFileWrites = count;
+  }
+  if (maxFileWrites >= 4) {
+    return {
+      isLoop: true,
+      loopType: "write_loop",
+      confidence: Math.min(0.9, maxFileWrites / 8),
+      severity: maxFileWrites >= 6 ? "high" : "medium",
+      repeatedActions: maxFileWrites,
+      windowMs: loopWindowMs,
+      shouldStop: maxFileWrites >= 6,
+      detail: `Repeated writes/edits to the same file (${maxFileWrites} times) — agent may be oscillating`,
+    };
   }
 
   return {
@@ -622,6 +676,8 @@ export default definePluginEntry({
               error_loop: "The same tool keeps failing. Check the error message and try a different strategy.",
               error_cascade: "Multiple different tools are failing. This may indicate an environment or permission issue — check your setup before retrying.",
               pingPong: "You're alternating between two tools without progress. Break the cycle by choosing one approach and sticking with it.",
+              search_loop: "You've searched many times without finding new information. Try a different search strategy or ask for help.",
+              write_loop: "You're writing to the same file repeatedly. Decide on the final content and write it once.",
             };
             const hint = recoveryHints[loopResult.loopType] || "";
 
