@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Guard — Stop AI Agents From Running In Loops</title>
+    <meta name="description" content="Agent Guard detects and blocks tool call loops + verifies state after execution in AI agents. Catches silent no-ops where 200 OK means nothing happened. Open source plugin for OpenClaw.">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0a; color: #e5e5e5; line-height: 1.6;
+        }
+        .container { max-width: 720px; margin: 0 auto; padding: 40px 24px; }
+        
+        /* Hero */
+        .hero { text-align: center; padding: 60px 0 40px; }
+        .hero h1 { 
+            font-size: 2.5rem; font-weight: 700; color: #fff; 
+            margin-bottom: 16px;
+        }
+        .hero .subtitle { 
+            font-size: 1.25rem; color: #a0a0a0; margin-bottom: 32px;
+        }
+        .hero .tagline {
+            font-size: 1.1rem; color: #f97316; font-weight: 600;
+            margin-bottom: 40px;
+        }
+        
+        /* Problem */
+        .section { padding: 40px 0; }
+        .section h2 { font-size: 1.5rem; color: #fff; margin-bottom: 20px; }
+        .section p { color: #a0a0a0; margin-bottom: 16px; }
+        
+        .problem-box {
+            background: #1a1a1a; border: 1px solid #dc2626; border-radius: 12px;
+            padding: 24px; margin-bottom: 24px;
+        }
+        .problem-box .number {
+            font-size: 2rem; color: #dc2626; font-weight: 700;
+        }
+        .problem-box .label { color: #737373; font-size: 0.9rem; }
+        
+        /* How it works */
+        .step {
+            display: flex; gap: 16px; margin-bottom: 24px;
+        }
+        .step-num {
+            width: 36px; height: 36px; background: #f97316; color: #000;
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 1rem;
+        }
+        .step-content h3 { color: #fff; font-size: 1.1rem; margin-bottom: 4px; }
+        .step-content p { color: #a0a0a0; }
+        
+        /* Evidence */
+        .evidence-card {
+            background: #1a1a1a; border: 1px solid #262626; border-radius: 12px;
+            padding: 20px; margin-bottom: 16px;
+        }
+        .evidence-card .type { color: #f97316; font-size: 0.8rem; font-weight: 600; }
+        .evidence-card h3 { color: #fff; font-size: 1rem; margin-bottom: 8px; }
+        .evidence-card p { color: #737373; font-size: 0.9rem; }
+        
+        /* CTA */
+        .cta { text-align: center; padding: 40px 0; }
+        .cta h2 { font-size: 1.5rem; color: #fff; margin-bottom: 16px; }
+        .cta p { color: #a0a0a0; margin-bottom: 24px; }
+        
+        .cta-form { max-width: 400px; margin: 0 auto; }
+        .cta-form input[type="email"] {
+            width: 100%; padding: 12px 16px; border: 1px solid #262626;
+            background: #1a1a1a; color: #e5e5e5; border-radius: 8px;
+            font-size: 1rem; margin-bottom: 12px;
+        }
+        .cta-form input[type="email"]:focus {
+            outline: none; border-color: #f97316;
+        }
+        .cta-form button {
+            width: 100%; padding: 12px; background: #f97316; color: #000;
+            border: none; border-radius: 8px; font-size: 1rem; font-weight: 600;
+            cursor: pointer;
+        }
+        .cta-form button:hover { background: #ea580c; }
+        .cta-note { color: #525252; font-size: 0.8rem; margin-top: 12px; }
+        
+        /* Open source badge */
+        .oss {
+            text-align: center; padding: 20px 0;
+            color: #525252; font-size: 0.85rem;
+        }
+        .oss a { color: #f97316; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hero -->
+        <div class="hero">
+            <h1>Agent Guard</h1>
+            <div class="subtitle">Stop AI agents from running in loops.</div>
+            <div class="tagline">Detect loops. Verify state. Catch silent no-ops.</div>
+        </div>
+        
+        <!-- Problem -->
+        <div class="section">
+            <h2>The Problem</h2>
+            <p>AI agents can get stuck in loops — calling the same tool over and over, burning API tokens, running up bills, and never completing the task.</p>
+            
+            <div class="problem-box">
+                <div class="number">50,000</div>
+                <div class="label">API requests in ONE HOUR from a single stuck agent — production database went down (Reddit r/AI_Agents, 2026)</div>
+            </div>
+            
+            <div class="problem-box">
+                <div class="number">$47,000</div>
+                <div class="label">API bill from a single agent loop incident (Waxell, 2025)</div>
+            </div>
+            
+            <div class="problem-box">
+                <div class="number">6/7</div>
+                <div class="label">AI agent platform vendors say API integration failures are the #1 cause of agent workflow failures (G2, 770 verified reviews, 2026)</div>
+            </div>
+            
+            <p>This isn't theoretical. Real production systems went down. Real money was burned. And it can happen to any agent running without guardrails.</p>
+        </div>
+        
+        <!-- How it works -->
+        <div class="section">
+            <h2>How It Works</h2>
+            
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <h3>Hook into every tool call</h3>
+                    <p>Agent Guard runs as a plugin hook inside your agent runtime. Every tool call passes through it before execution.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <h3>Detect loops in real-time</h3>
+                    <p>Same tool + same parameters repeated? Same tool called excessively? Consecutive errors? Detected and logged instantly.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <h3>Block before the call executes</h3>
+                    <p>When a loop is confirmed, the tool call is blocked before it reaches the API. No wasted tokens. No runaway bills.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <h3>Verify state after execution</h3>
+                    <p>Tool returned 200 OK but nothing actually happened? Agent Guard's after_tool_call hook checks: file exists after write, content matches after edit, exit code is zero after exec. Catches silent no-ops that other tools miss.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-num">5</div>
+                <div class="step-content">
+                    <h3>Self-governance against over-blocking</h3>
+                    <p>If Agent Guard itself blocks too many consecutive calls, it auto-downgrades to detection-only mode. Governance tools need governance too.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Evidence -->
+        <div class="section">
+            <h2>Real Evidence, Not Theory</h2>
+            
+            <div class="evidence-card">
+                <div class="type">FAILURE #6 — SELF-DOCUMENTED</div>
+                <h3>Governance tool locked itself out</h3>
+                <p>When we enabled blocking, Agent Guard detected every tool call as a loop and blocked all of them — including its own diagnostics. The agent was completely frozen. This failure led to the over-governance auto-downgrade feature.</p>
+            </div>
+            
+            <div class="evidence-card">
+                <div class="type">PRODUCTION INCIDENT</div>
+                <h3>50K requests in one hour — production down</h3>
+                <p>"One agent got stuck in a loop where it'd call an API, not like the response, call again with slightly different params, repeat forever. In one hour it made 50K requests to our database API and brought down production." — Reddit r/AI_Agents</p>
+            </div>
+            
+            <div class="evidence-card">
+                <div class="type">EXTERNAL REFERENCE</div>
+                <h3>Waxell $47K incident</h3>
+                <p>A fintech agent ran uncontrolled for hours, making thousands of API calls. "No mechanism that could have terminated the session before the next API call completed." Agent Guard's before_tool_call hook IS that mechanism.</p>
+            </div>
+            
+            <div class="evidence-card">
+                <div class="type">INDUSTRY DATA</div>
+                <h3>G2: 6 out of 7 vendors confirm</h3>
+                <p>In G2's 2026 State of AI Agent Builders report (770 verified reviews), 6 of 7 vendors identified API and system integration failures as the #1 cause of agent workflow failures. Orchestration — including loop prevention — is now the central nervous system.</p>
+            </div>
+            
+            <div class="evidence-card">
+                <div class="type">ARCHITECTURE VALIDATION</div>
+                <h3>Claude Code, LangChain, AWS all use the same pattern</h3>
+                <p>Anthropic's Claude Code implements PreToolUse hooks. LangChain's LoopDetectionMiddleware moved their agent from rank 30 to 5 on Terminal Bench. AWS published an official tutorial on preventing reasoning loops. Tool-call interception is the industry standard for loop governance.</p>
+            </div>
+        </div>
+        
+        <!-- CTA -->
+        <div class="cta">
+            <h2>Is your agent running without guardrails?</h2>
+            <p>Get notified when Agent Guard is ready for your platform. Early adopters get free detection mode forever.</p>
+            
+            <div style="margin-top:16px">
+                <a href="https://github.com/jbilotta4-create/agent-guard/issues/new?title=Waitlist%3A+%5Byour+email%5D&body=I+want+to+join+the+Agent+Guard+waitlist." style="display:inline-block;padding:12px 32px;background:#f97316;color:#000;border-radius:8px;font-size:1rem;font-weight:600;text-decoration:none">Join waitlist → GitHub</a>
+            </div>
+            <div class="cta-note">Opens a GitHub issue. No spam. We'll reach out when it's ready. Open source, always.</div>
+        </div>
+        
+        <!-- OSS -->
+        <div class="oss">
+            Agent Guard is open source (MIT). <a href="https://github.com/jbilotta4-create/agent-guard">View on GitHub</a>. Built on OpenClaw plugin hooks.
+            <br>Currently: loop detection plugin. Not a full tool misuse guard (yet).
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #eee;">
+      <h3 style="color: #666;">📖 Blog</h3>
+      <p><a href="blog/output-loop.html" style="color: #0366d6; font-size: 1.1rem;">Why Your Agent's Loop Detector Is Missing Half the Problem</a></p>
+      <p style="color: #999; font-size: 0.9rem;">How output_loop and error_loop slip past action_loop detection</p>
+    </div>
+
+    <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #eee;">
+      <p><a href="blog/agent-incidents-2026.html" style="color: #0366d6; font-size: 1.1rem;">2026年AI Agent失控事故全景</a></p>
+      <p style="color: #999; font-size: 0.9rem;">6 real incidents, 3 patterns, 5-layer reliability stack — why existing solutions aren't enough</p>
+    </div>
+
+    <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #eee;">
+      <p><a href="blog/success-is-not-effective.html" style="color: #0366d6; font-size: 1.1rem;">成功≠有效：Agent的工具调用在"成功"时也在浪费</a></p>
+      <p><a href="blog/real-agent-loops.html" style="color: #0366d6; font-size: 1.1rem;">What Real Agent Loops Look Like</a></p>
+      <p style="color: #999; font-size: 0.9rem;">Evidence from OpenClaw GitHub issues + 2,500 hook-proof records — what detection catches and what it misses</p>
+    </div>
+
+</body>
+</html>
