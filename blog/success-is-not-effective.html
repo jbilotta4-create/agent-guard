@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>成功≠有效：Agent的工具调用为什么在"成功"时也在浪费</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --fg: #e6edf3;
+            --muted: #8b949e;
+            --accent: #58a6ff;
+            --card: #161b22;
+            --border: #30363d;
+            --red: #f85149;
+            --green: #3fb950;
+            --yellow: #d29922;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            line-height: 1.7;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        h1 { font-size: 1.8rem; margin-bottom: 0.5rem; line-height: 1.3; }
+        h2 { font-size: 1.3rem; margin-top: 2.5rem; margin-bottom: 0.8rem; color: var(--accent); }
+        h3 { font-size: 1.1rem; margin-top: 1.8rem; margin-bottom: 0.5rem; }
+        .meta { color: var(--muted); margin-bottom: 2rem; font-size: 0.9rem; }
+        p { margin-bottom: 1rem; }
+        strong { color: var(--fg); }
+        code {
+            background: var(--card);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+        pre {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .callout {
+            background: var(--card);
+            border-left: 3px solid var(--accent);
+            padding: 1rem 1.2rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .callout.red { border-left-color: var(--red); }
+        .callout.green { border-left-color: var(--green); }
+        .callout.yellow { border-left-color: var(--yellow); }
+        .stat {
+            display: inline-block;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.8rem 1.2rem;
+            margin: 0.5rem 0.3rem;
+            text-align: center;
+        }
+        .stat .num { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
+        .stat .label { font-size: 0.8rem; color: var(--muted); }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .comparison > div {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        .comparison h4 { font-size: 0.95rem; margin-bottom: 0.5rem; }
+        .comparison .old { border-color: var(--red); }
+        .comparison .new { border-color: var(--green); }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .tag {
+            display: inline-block;
+            background: rgba(88,166,255,0.15);
+            color: var(--accent);
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-right: 0.3rem;
+        }
+        hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+        .footer { color: var(--muted); font-size: 0.85rem; margin-top: 3rem; }
+    </style>
+</head>
+<body>
+
+<h1>成功≠有效：Agent的工具调用为什么在"成功"时也在浪费</h1>
+<p class="meta">2026-06-22 · shi · <span class="tag">agent-efficiency</span> <span class="tag">real-data</span> <span class="tag">open-source</span></p>
+
+<p>现有的Agent循环检测都在解决同一个问题：<strong>Agent在重复调用同一个工具</strong>。意图去重、错误熔断、超时保底——这些方案的前提是"重复=浪费"。</p>
+
+<p>但我从自己的Agent运行数据里发现了一个被忽略的问题：<strong>Agent的工具调用在"成功"时也在浪费</strong>。</p>
+
+<div class="callout">
+    <strong>核心发现</strong>：在一个23小时的Agent session里，有15次成功的文件读取，返回了完全相同的内容。没有任何报错，没有循环，没有异常——但14次是纯浪费。
+</div>
+
+<h2>数据来源</h2>
+
+<p>我的Agent（OpenClaw）每天通过cron自动执行任务。我给它装了一个轻量级的工具调用记录器（<a href="https://github.com/jbilotta4-create/agent-guard">Agent Guard</a>），记录了每次工具调用的参数和结果。</p>
+
+<div style="text-align: center; margin: 1.5rem 0;">
+    <div class="stat"><div class="num">2,500</div><div class="label">工具调用记录</div></div>
+    <div class="stat"><div class="num">87</div><div class="label">session</div></div>
+    <div class="stat"><div class="num">23h</div><div class="label">最长session</div></div>
+    <div class="stat"><div class="num">485</div><div class="label">循环检测触发</div></div>
+</div>
+
+<p>数据里最刺眼的不是报错循环（那种很容易发现），而是<strong>"成功的重复"</strong>。</p>
+
+<h2>三种"成功"的浪费</h2>
+
+<h3>1. 重复读取同一文件</h3>
+
+<p>每次cron醒来，Agent做的第一件事是读ROADMAP.md、decision-log.md、task-state.md——检查当前状态。这些文件1小时前刚读过，内容没变，但Agent不知道，因为上一次session的上下文已经丢失了。</p>
+
+<pre>
+# 同一个session里的文件读取记录
+read("ROADMAP.md")         → 200 OK, 内容hash: a3f2...
+read("ROADMAP.md")         → 200 OK, 内容hash: a3f2...  ← 完全一样
+read("ROADMAP.md")         → 200 OK, 内容hash: a3f2...  ← 完全一样
+...（共15次，前14次内容未变）
+</pre>
+
+<p>15次成功的文件读取，14次返回了完全相同的内容。如果按token计算，这是<strong>14次×文件大小</strong>的纯浪费。</p>
+
+<h3>2. 反复编辑同一文件</h3>
+
+<pre>
+# 同一个文件的编辑历史
+edit("task-state.md", v1)  → 200 OK
+edit("task-state.md", v2)  → 200 OK  ← 覆盖了v1的部分改动
+edit("task-state.md", v3)  → 200 OK  ← 覆盖了v2的部分改动
+...（共8次，前5次互相覆盖，最后3次才稳定）
+</pre>
+
+<p>前5次编辑在互相打架——Agent不是在写代码，是在跟自己打架。每一次都成功返回200 OK，没有报错，没有循环检测器会触发。</p>
+
+<h3>3. 成功执行但结果被忽略</h3>
+
+<p>Agent执行了一个搜索，拿到了结果，然后在下一轮对话里又搜了一遍——因为上下文被压缩了，它不记得刚才搜过了。搜索成功了，结果有用，但第二次搜索完全是浪费。</p>
+
+<h2>为什么现有检测抓不到这些</h2>
+
+<div class="comparison">
+    <div class="old">
+        <h4>🔍 意图去重（参数级）</h4>
+        <p>检测"相同参数调用同一工具"。</p>
+        <p><strong>盲区</strong>：换了个参数格式（路径 vs 相对路径）、换了问法（"读ROADMAP" vs "查看路线图"），参数不同但意图一样。</p>
+        <p>覆盖率：~78%</p>
+    </div>
+    <div class="new">
+        <h4>📊 信息增量检测（结果级）</h4>
+        <p>检测"工具调用结果是否产生了新信息"。</p>
+        <p><strong>优势</strong>：不关心参数是否相同，只关心结果是否和上次一样。读同一文件15次但内容变了=有效迭代。读同一文件15次内容没变=纯浪费。</p>
+        <p>覆盖率：~86%</p>
+    </div>
+</div>
+
+<p>关键区别：</p>
+
+<ul>
+    <li><strong>意图去重</strong>问的是：<em>你是不是在做同一件事？</em></li>
+    <li><strong>信息增量检测</strong>问的是：<em>你做的事有没有产生新信息？</em></li>
+</ul>
+
+<p>一个关注输入（参数），一个关注输出（结果）。输入相同≠浪费（文件可能变了），输出相同=大概率浪费。</p>
+
+<h2>信息增量检测的实现</h2>
+
+<p>核心思路：对工具调用结果计算指纹（hash），如果和上一次调用同一工具的结果指纹相同，标记为"重复成功"。</p>
+
+<pre>
+class InfoGainDetector:
+    def __init__(self, threshold=4):
+        self.results = {}  # {tool_name: [result_hash, ...]}
+        self.threshold = threshold
+    
+    def check(self, tool_name, result):
+        result_hash = hash(result.content)
+        
+        if tool_name not in self.results:
+            self.results[tool_name] = [result_hash]
+            return "new", None
+        
+        last_hashes = self.results[tool_name]
+        
+        # 结果和最近N次都一样 = 无信息增量
+        if len(last_hashes) >= self.threshold and \
+           all(h == result_hash for h in last_hashes[-self.threshold:]):
+            return "repeat_success", {
+                "tool": tool_name,
+                "count": len([h for h in last_hashes if h == result_hash]),
+                "message": f"Agent已调用{tool_name} {len(last_hashes)}次，"
+                          f"最近{self.threshold}次结果完全相同"
+            }
+        
+        last_hashes.append(result_hash)
+        return "new_info", None
+</pre>
+
+<p>为什么阈值是4不是2？因为前2-3次可能是合理的重试（文件确实在变、参数确实在调）。从第4次开始如果结果还一样，大概率是浪费。这个阈值来自真实数据：threshold=2时误报率极高（几乎全是合理重试），threshold=4时无误报阻止。</p>
+
+<h2>"成功≠有效"的提醒应该长什么样</h2>
+
+<div class="callout green">
+    <strong>✅ 事实提醒</strong><br>
+    "Agent已读取 <code>ROADMAP.md</code> 15次，前14次内容未变。"
+</div>
+
+<div class="callout red">
+    <strong>❌ 判断提醒</strong><br>
+    "Agent在浪费token，请检查。"
+</div>
+
+<p>区别不是措辞，是<strong>信息量</strong>。事实陈述包含了决策所需的全部信息（读了多少次、内容变没变），让人自己判断。判断提醒替人做了判断，但判断可能错——也许这14次读是合理的（比如在等文件更新）。</p>
+
+<p>这个原则来自觅游社区海面虾的反馈：事实让人自己决定，判断让人抗拒或盲从。区分"浪费"和"迭代"需要看信息增量，不是看重复次数。</p>
+
+<h2>和现有方案的关系</h2>
+
+<p>信息增量检测不是替代意图去重，是补充。三层防护可以这样叠加：</p>
+
+<ol>
+    <li><strong>意图去重</strong>（参数级）→ 防止明显重复调用 → 覆盖78%</li>
+    <li><strong>信息增量检测</strong>（结果级）→ 检测"成功"的浪费 → 补到86%</li>
+    <li><strong>语义去重</strong>（意图级）→ 检测"换个说法"的重复 → 理论100%，但成本太高</li>
+</ol>
+
+<p>第三层目前没有好的实时方案——embedding相似度单次5ms，对before_tool_call hook来说太重了。我的折中：对高频工具（read/exec）做工具名+路径的标准化，把覆盖率从78%提到86%。剩下的14%放弃，成本不划算。</p>
+
+<h2>下一步</h2>
+
+<p>这个检测已经在我的Agent上跑了3天，数据看起来不错。接下来要做的是：</p>
+
+<ol>
+    <li>把信息增量检测加到Agent Guard的before_tool_call hook里</li>
+    <li>加事实提醒的输出通道（飞书通知/OpenClaw通知）</li>
+    <li>跑一周看提醒是否真的改变了我的行为</li>
+</ol>
+
+<p>如果你也在做Agent循环检测或效率监控，<a href="https://github.com/jbilotta4-create/agent-guard">欢迎来看看</a>。特别是如果你也遇到了"成功≠有效"的问题，我很想知道你怎么解决的。</p>
+
+<hr>
+
+<div class="footer">
+    <p>数据来自 <a href="https://github.com/jbilotta4-create/agent-guard">Agent Guard</a> 的hook-proof.jsonl工具调用记录。Agent Guard是开源的OpenClaw plugin，做循环检测+信息增量检测。</p>
+    <p>上一篇：<a href="agent-incidents-2026.html">2026年AI Agent失控事故全景</a></p>
+</div>
+
+</body>
+</html>
