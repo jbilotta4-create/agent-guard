@@ -1,14 +1,17 @@
 /**
  * Agent Guard — OpenClaw Plugin
  * 
- * Automatic loop detection and state verification via plugin hooks.
- * No voluntary tool calls needed — runs on every tool call automatically.
+ * Real-time fact alerts for AI agents — detect loops, verify state,
+ * and surface facts (not judgments) when something looks off.
  * 
  * Hook strategy:
- * - after_tool_call: record action + detect loops + verify state (observation + verification)
- * - before_tool_call: block tool calls when loop detected or state verification failed (decision)
+ * - after_tool_call: record action + detect loops + verify state (observation)
+ * - before_tool_call: require approval with fact statement when loop detected (decision)
+ * - before_prompt_build: inject fact context when pattern detected (awareness)
  * 
- * v0.8.0: Added Layer 3-4 state verification (Tool-Use Reliability Stack)
+ * v1.0.0: Shifted from silent block → fact-based approval alerts.
+ *          "You've read the same file 6 times" (fact) vs "You're wasting tokens" (judgment).
+ *          Facts let the user/agent decide. Judgments trigger resistance or compliance.
  */
 
 // @ts-ignore - OpenClaw plugin SDK is runtime-provided
@@ -36,10 +39,56 @@ interface LoopDetectionResult {
   shouldStop: boolean;
 }
 
-// In-memory action history per session
-const actionHistory: Map<string, ActionRecord[]> = new Map();
-const consecutiveErrors: Map<string, number> = new Map();
+// Track last alert time per session + per fact pattern (to avoid spam)
 const loopAlertCooldown: Map<string, number> = new Map();
+
+// --- Fact Statement Generator ---
+// Turns detection results into verifiable fact statements (no judgments)
+
+function generateFactStatement(
+  loopResult: LoopDetectionResult,
+  toolName: string,
+  sessionId: string,
+): string {
+  const history = actionHistory.get(sessionId) || [];
+  const now = Date.now();
+  const windowActions = history.filter(a => now - a.timestamp < loopResult.windowMs);
+
+  switch (loopResult.loopType) {
+    case "action_loop": {
+      // Find the repeated action
+      const actionCounts: Map<string, { tool: string; hash: string; count: number; firstTime: number }> = new Map();
+      for (const a of windowActions) {
+        const key = `${a.toolName}:${a.paramsHash}`;
+        const existing = actionCounts.get(key);
+        if (existing) {
+          existing.count++;
+        } else {
+          actionCounts.set(key, { tool: a.toolName, hash: a.paramsHash, count: 1, firstTime: a.timestamp });
+        }
+      }
+      // Find the most repeated one
+      let topAction = { tool: "", hash: "", count: 0, firstTime: 0 };
+      for (const [, v] of actionCounts) {
+        if (v.count > topAction.count) topAction = v;
+      }
+      const minutesAgo = Math.round((now - topAction.firstTime) / 60000);
+      return `${toolName} has been called ${loopResult.repeatedActions} times with the same parameters in the last ${minutesAgo} minute${minutesAgo !== 1 ? "s" : ""}. The previous ${loopResult.repeatedActions - 1} calls returned the same result.`;
+    }
+
+    case "output_loop": {
+      const minutesAgo = Math.round(loopResult.windowMs / 60000);
+      return `${toolName} has been called ${loopResult.repeatedActions} times with different parameters in the last ${minutesAgo} minute${minutesAgo !== 1 ? "s" : ""}, but the outputs have been similar each time.`;
+    }
+
+    case "error_loop": {
+      return `The last ${loopResult.repeatedActions} tool calls have all returned errors. The pattern has not changed despite retries.`;
+    }
+
+    default:
+      return "";
+  }
+}
 
 function hashParams(params: Record<string, unknown>): string {
   // Simple deterministic hash — order keys, stringify values
@@ -236,6 +285,18 @@ const DEFAULT_RULES: VerificationRule[] = [
 const verifyFailures: Map<string, number> = new Map();
 const VERIFY_FAILURE_THRESHOLD = 3; // Block after 3 consecutive failures
 
+// --- Fact-based alert config ---
+const FACT_ALERT_COOLDOWN_MS = 180000; // 3 min between same-session alerts
+const FACT_ALERT_MIN_REPEATS = 4; // Only alert at 4+ repeats (below that, likely legit retries)
+
+function generateVerifyFactStatement(
+  toolName: string,
+  failCount: number,
+  detail: string,
+): string {
+  return `The last ${failCount} ${toolName} call${failCount > 1 ? "s" : ""} reported success, but the actual state did not match. Detail: ${detail}`;
+}
+
 function getNestedValue(obj: Record<string, unknown>, dotPath: string): unknown {
   const keys = dotPath.split(".");
   let current: unknown = obj;
@@ -403,7 +464,7 @@ export default definePluginEntry({
         const isError = Boolean(event.error);
         const result = event.result;
 
-        // --- Loop Detection (existing) ---
+        // --- Loop Detection ---
         recordAction(sessionId, toolName, params, isError);
 
         const loopResult = detectLoop(
@@ -413,19 +474,22 @@ export default definePluginEntry({
           config.maxConsecutiveErrors,
         );
 
-        if (loopResult.isLoop) {
-          // Cooldown: don't spam alerts (5 min between same-session alerts)
+        if (loopResult.isLoop && loopResult.repeatedActions >= FACT_ALERT_MIN_REPEATS) {
           const now = Date.now();
-          const lastAlert = loopAlertCooldown.get(sessionId) || 0;
-          if (now - lastAlert > 300000) {
-            api.logger.warn?.(
-              `Agent Guard: LOOP DETECTED [${loopResult.loopType}] session=${sessionId} tool=${toolName} repeats=${loopResult.repeatedActions} severity=${loopResult.severity} confidence=${loopResult.confidence.toFixed(2)} shouldStop=${loopResult.shouldStop}`,
-            );
-            loopAlertCooldown.set(sessionId, now);
+          const cooldownKey = `${sessionId}:${loopResult.loopType}`;
+          const lastAlert = loopAlertCooldown.get(cooldownKey) || 0;
+          if (now - lastAlert > FACT_ALERT_COOLDOWN_MS) {
+            const fact = generateFactStatement(loopResult, toolName, sessionId);
+            if (fact) {
+              api.logger.warn?.(
+                `Agent Guard: FACT ALERT [${loopResult.loopType}] session=${sessionId} repeats=${loopResult.repeatedActions} fact="${fact}"`,
+              );
+              loopAlertCooldown.set(cooldownKey, now);
+            }
           }
         }
 
-        // --- State Verification (Layer 3-4, new in v0.8.0) ---
+        // --- State Verification ---
         if (config.stateVerification) {
           const rules = config.verificationRules || DEFAULT_RULES;
           const matchingRules = rules.filter((r: VerificationRule) => matchesRule(toolName, r));
@@ -434,29 +498,21 @@ export default definePluginEntry({
             const verifyResult = verifyState(toolName, params, result, isError, rule);
 
             if (!verifyResult.passed) {
-              // Track consecutive failures
               const failCount = (verifyFailures.get(sessionId) || 0) + 1;
               verifyFailures.set(sessionId, failCount);
 
               const shouldBlock = rule.severity === "block" || failCount >= config.verifyBlockThreshold;
 
+              const fact = generateVerifyFactStatement(toolName, failCount, verifyResult.detail);
               api.logger[shouldBlock ? "error" : "warn"]?.(
-                `Agent Guard: STATE VERIFICATION FAILED [${rule.checkType}] tool=${toolName} severity=${rule.severity} consecutive_failures=${failCount} detail=${verifyResult.detail}`,
+                `Agent Guard: STATE FACT [${rule.checkType}] tool=${toolName} consecutive_failures=${failCount} fact="${fact}"`,
               );
 
               if (shouldBlock) {
-                // Store block signal for before_tool_call to pick up
                 loopAlertCooldown.set(`${sessionId}:verify_block`, Date.now());
               }
             } else {
-              // Reset consecutive failure count on success
               verifyFailures.set(sessionId, 0);
-
-              if (config.logLevel === "debug") {
-                api.logger.info?.(
-                  `Agent Guard: State verification passed [${rule.checkType}] tool=${toolName} detail=${verifyResult.detail}`,
-                );
-              }
             }
           }
         }
@@ -464,7 +520,14 @@ export default definePluginEntry({
       { priority: 80 },
     );
 
-    // === before_tool_call: Block tool calls when loop detected or state verification failed ===
+    // === before_tool_call: Fact-based approval alerts ===
+    //
+    // When a loop or verification failure is detected, instead of silently blocking,
+    // surface a fact statement via requireApproval. The user/agent decides whether to continue.
+    //
+    // Fact: "You've called exec 6 times with the same params in 3 minutes"
+    // Judgment: "You're wasting tokens" — we don't do this.
+    //
     api.on(
       "before_tool_call",
       async (event, ctx) => {
@@ -473,45 +536,128 @@ export default definePluginEntry({
 
         const sessionId = ctx.sessionId || ctx.sessionKey || "unknown";
 
-        // Check 1: Loop detection block
-        if (config.blockOnLoop) {
-          const loopResult = detectLoop(
-            sessionId,
-            config.loopWindowMs,
-            config.loopThreshold,
-            config.maxConsecutiveErrors,
-          );
+        // Check 1: Loop detection → fact-based approval
+        const loopResult = detectLoop(
+          sessionId,
+          config.loopWindowMs,
+          config.loopThreshold,
+          config.maxConsecutiveErrors,
+        );
 
-          if (loopResult.isLoop && loopResult.shouldStop) {
-            api.logger.warn?.(
-              `Agent Guard: BLOCKING tool call [${event.toolName}] — loop detected (${loopResult.loopType}, repeats=${loopResult.repeatedActions}, severity=${loopResult.severity})`,
+        if (loopResult.isLoop && loopResult.repeatedActions >= FACT_ALERT_MIN_REPEATS) {
+          const fact = generateFactStatement(loopResult, event.toolName, sessionId);
+          if (!fact) return;
+
+          // Cooldown: don't spam approval requests
+          const cooldownKey = `${sessionId}:${loopResult.loopType}:approval`;
+          const lastApproval = loopAlertCooldown.get(cooldownKey) || 0;
+          if (Date.now() - lastApproval < FACT_ALERT_COOLDOWN_MS) return;
+
+          loopAlertCooldown.set(cooldownKey, Date.now());
+
+          // For critical severity (extreme loops), block directly
+          if (loopResult.severity === "critical" && config.blockOnLoop) {
+            api.logger.error?.(
+              `Agent Guard: BLOCKING [${event.toolName}] — critical loop (${loopResult.loopType}, ${loopResult.repeatedActions} repeats)`,
             );
-
             return {
               block: true,
-              blockReason: `Agent Guard: Loop detected (${loopResult.loopType}, ${loopResult.repeatedActions} repeats in ${loopResult.windowMs}ms window, severity=${loopResult.severity}). Stopping to prevent resource waste.`,
+              blockReason: `Agent Guard: ${fact}`,
             };
           }
+
+          // For medium/high severity: fact-based approval request
+          const severity = loopResult.severity === "high" ? "warning" : "info";
+          api.logger.warn?.(
+            `Agent Guard: FACT APPROVAL [${event.toolName}] — ${loopResult.loopType} (${loopResult.repeatedActions} repeats) fact="${fact}"`,
+          );
+
+          return {
+            requireApproval: {
+              title: `Agent Guard: Repeated action detected`,
+              description: fact,
+              severity,
+              timeoutMs: 60_000,
+              timeoutBehavior: "allow",  // Default to allowing if no response (don't block)
+              allowedDecisions: ["allow-once", "allow-always", "deny"],
+            },
+          };
         }
 
-        // Check 2: State verification block (consecutive verification failures)
+        // Check 2: State verification → fact-based approval
         if (config.stateVerification) {
           const verifyBlockTime = loopAlertCooldown.get(`${sessionId}:verify_block`);
           if (verifyBlockTime && Date.now() - verifyBlockTime < 300000) {
-            // Within 5 min of a verification block signal
             const failCount = verifyFailures.get(sessionId) || 0;
-            api.logger.warn?.(
-              `Agent Guard: BLOCKING tool call [${event.toolName}] — state verification failed ${failCount} consecutive times`,
-            );
+            if (failCount >= 2) {
+              const cooldownKey = `${sessionId}:verify:approval`;
+              const lastApproval = loopAlertCooldown.get(cooldownKey) || 0;
+              if (Date.now() - lastApproval < FACT_ALERT_COOLDOWN_MS) return;
+              loopAlertCooldown.set(cooldownKey, Date.now());
 
+              const fact = generateVerifyFactStatement(
+                event.toolName,
+                failCount,
+                "state did not match after tool call",
+              );
+
+              return {
+                requireApproval: {
+                  title: `Agent Guard: State verification mismatch`,
+                  description: fact,
+                  severity: "warning",
+                  timeoutMs: 60_000,
+                  timeoutBehavior: "allow",
+                  allowedDecisions: ["allow-once", "allow-always", "deny"],
+                },
+              };
+            }
+          }
+        }
+      },
+      { priority: 90 },
+    );
+
+    // === before_prompt_build: Inject fact context when pattern detected ===
+    //
+    // When loops are detected but not yet at approval threshold,
+    // inject a subtle fact into the agent's context so it can self-correct
+    // before escalation.
+    //
+    api.on(
+      "before_prompt_build",
+      async (event, ctx) => {
+        const config = getConfig();
+        if (!config.enabled) return;
+
+        const sessionId = ctx.sessionId || ctx.sessionKey || "unknown";
+        const loopResult = detectLoop(
+          sessionId,
+          config.loopWindowMs,
+          config.loopThreshold,
+          config.maxConsecutiveErrors,
+        );
+
+        // Only inject when there's a pattern but below approval threshold
+        if (loopResult.repeatedActions >= 3 && loopResult.repeatedActions < FACT_ALERT_MIN_REPEATS) {
+          const history = actionHistory.get(sessionId) || [];
+          const now = Date.now();
+          const recentTools = history
+            .filter(a => now - a.timestamp < loopResult.windowMs)
+            .map(a => a.toolName);
+          const toolCounts: Map<string, number> = new Map();
+          for (const t of recentTools) {
+            toolCounts.set(t, (toolCounts.get(t) || 0) + 1);
+          }
+          const topTool = [...toolCounts.entries()].sort((a, b) => b[1] - a[1])[0];
+          if (topTool) {
             return {
-              block: true,
-              blockReason: `Agent Guard: State verification failed ${failCount} consecutive times. Last tool call claimed success but actual state did not match. Stopping to prevent cascading failures.`,
+              context: `[Agent Guard] ${topTool[0]} has been called ${topTool[1]} times recently. Consider whether the next call will produce new information.`,
             };
           }
         }
       },
-      { priority: 90 }, // Higher priority = runs first, can block before other hooks
+      { priority: 50 },
     );
   },
 });
