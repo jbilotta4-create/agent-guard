@@ -1,0 +1,11 @@
+{
+  "codex": {
+    "endpoint": "https://codex.test.trycloudflare.com",
+    "capabilities": [
+      "code",
+      "debug"
+    ],
+    "registered_at": "2026-06-23T12:02:45.247Z",
+    "last_seen": "2026-06-23T12:02:45.248Z"
+  }
+}

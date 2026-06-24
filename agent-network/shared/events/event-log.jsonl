@@ -1,0 +1,2 @@
+{"event":"agent.registered","agentId":"codex","endpoint":"https://codex.test.trycloudflare.com","ts":"2026-06-23T12:02:45.248Z"}
+{"event":"message.received","from":"codex","text":"Build complete","type":"notification","ts":"2026-06-23T12:02:45.308Z"}
