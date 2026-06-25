@@ -27,20 +27,27 @@ interface ActionRecord {
   timestamp: number;
   isError: boolean;
   sessionId: string;
+  signalSource?: string;  // Semantic signal source extracted from params (file/search/URL)
 }
 
 interface LoopDetectionResult {
   isLoop: boolean;
-  loopType: "action_loop" | "output_loop" | "error_loop" | "none";
+  loopType: "action_loop" | "output_loop" | "error_loop" | "signal_source_loop" | "none";
   confidence: number;
   severity: "low" | "medium" | "high" | "critical";
   repeatedActions: number;
   windowMs: number;
   shouldStop: boolean;
+  signalSource?: string;  // The repeated signal source (for signal_source_loop)
+  toolCount?: number;     // How many different tools accessed the same source
 }
 
 // Track last alert time per session + per fact pattern (to avoid spam)
 const loopAlertCooldown: Map<string, number> = new Map();
+
+// --- Action History & Error Tracking ---
+const actionHistory: Map<string, ActionRecord[]> = new Map();
+const consecutiveErrors: Map<string, number> = new Map();
 
 // --- Fact Statement Generator ---
 // Turns detection results into verifiable fact statements (no judgments)
@@ -85,9 +92,90 @@ function generateFactStatement(
       return `The last ${loopResult.repeatedActions} tool calls have all returned errors. The pattern has not changed despite retries.`;
     }
 
+    case "signal_source_loop": {
+      const source = loopResult.signalSource || "unknown";
+      const toolCount = loopResult.toolCount || 0;
+      const minutesAgo = Math.round(loopResult.windowMs / 60000);
+      return `${source} has been accessed ${loopResult.repeatedActions} times by ${toolCount} different tools in the last ${minutesAgo} minute${minutesAgo !== 1 ? "s" : ""}. Each tool is reading the same source but producing different outputs -- the understanding pattern is repeating.`;
+    }
+
     default:
       return "";
   }
+}
+
+// --- Utility: Nested value extraction ---
+
+function getNestedValue(obj: Record<string, unknown>, dotPath: string): unknown {
+  const keys = dotPath.split(".");
+  let current: unknown = obj;
+  for (const key of keys) {
+    if (current === null || current === undefined || typeof current !== "object") {
+      return undefined;
+    }
+    current = (current as Record<string, unknown>)[key];
+  }
+  return current;
+}
+
+// --- Signal Source Extraction ---
+// Extract a semantic "signal source" from tool params.
+// This lets us detect when different tools are reading the same underlying resource
+// (e.g., read + grep + edit on the same file = understanding pattern repetition,
+// not just action repetition).
+
+const SIGNAL_SOURCE_PATTERNS: Array<{
+  toolPattern: string | RegExp;
+  extractors: Array<{ paramPath: string; normalize: (v: string) => string }>;
+}> = [
+  // File operations: extract file path as signal source
+  {
+    toolPattern: /^(read|write|edit|apply_patch|image)$/,
+    extractors: [{ paramPath: "path", normalize: (v) => `file:${v}` }],
+  },
+  // Search operations: extract search query as signal source
+  {
+    toolPattern: /^(web_search|exec)$/,
+    extractors: [
+      { paramPath: "query", normalize: (v) => `search:${v.toLowerCase().trim()}` },
+      { paramPath: "command", normalize: (v) => `cmd:${v.split(" ").slice(0, 3).join(" ")}` }, // First 3 tokens
+    ],
+  },
+  // Web fetch: extract URL as signal source
+  {
+    toolPattern: /^web_fetch$/,
+    extractors: [{ paramPath: "url", normalize: (v) => `url:${new URL(v).hostname + new URL(v).pathname}` }],
+  },
+  // Browser: extract URL as signal source
+  {
+    toolPattern: /^browser$/,
+    extractors: [{ paramPath: "url", normalize: (v) => `url:${new URL(v).hostname + new URL(v).pathname}` }],
+  },
+];
+
+function extractSignalSource(
+  toolName: string,
+  params: Record<string, unknown>,
+): string | undefined {
+  for (const pattern of SIGNAL_SOURCE_PATTERNS) {
+    const matches = typeof pattern.toolPattern === "string"
+      ? toolName === pattern.toolPattern
+      : pattern.toolPattern.test(toolName);
+    if (!matches) continue;
+
+    for (const extractor of pattern.extractors) {
+      const raw = getNestedValue(params, extractor.paramPath);
+      if (typeof raw === "string" && raw.length > 0) {
+        try {
+          return extractor.normalize(raw);
+        } catch {
+          // URL parsing can fail, skip
+          continue;
+        }
+      }
+    }
+  }
+  return undefined;
 }
 
 function hashParams(params: Record<string, unknown>): string {
@@ -188,6 +276,49 @@ function detectLoop(
     };
   }
 
+  // --- Signal Source Loop Detection ---
+  // Detect when the same semantic resource is being accessed by different tools.
+  // This is "understanding pattern repetition" — more fundamental than action repetition.
+  // Example: read(file) → grep(file) → edit(file) → read(file) = same source, 4 accesses, 3 tools
+  //
+  // Thresholds are lower than action_loop because cross-tool repetition is more concerning:
+  // - Same source 4+ times (vs 6+ for action_loop)
+  // - 3+ different tools accessing the same source (vs same tool for action_loop)
+
+  const SIGNAL_SOURCE_THRESHOLD = 4;      // Same source accessed 4+ times
+  const SIGNAL_SOURCE_MIN_TOOLS = 3;      // By 3+ different tools
+  const SIGNAL_SOURCE_WINDOW_MS = 300000; // 5-minute window
+
+  const signalActions = history.filter(a => now - a.timestamp < SIGNAL_SOURCE_WINDOW_MS && a.signalSource);
+  const sourceGroups: Map<string, { count: number; tools: Set<string> }> = new Map();
+  for (const a of signalActions) {
+    const src = a.signalSource!;
+    const existing = sourceGroups.get(src);
+    if (existing) {
+      existing.count++;
+      existing.tools.add(a.toolName);
+    } else {
+      sourceGroups.set(src, { count: 1, tools: new Set([a.toolName]) });
+    }
+  }
+
+  for (const [source, group] of sourceGroups) {
+    if (group.count >= SIGNAL_SOURCE_THRESHOLD && group.tools.size >= SIGNAL_SOURCE_MIN_TOOLS) {
+      const toolList = [...group.tools].join(", ");
+      return {
+        isLoop: true,
+        loopType: "signal_source_loop",
+        confidence: Math.min(0.9, group.count / (SIGNAL_SOURCE_THRESHOLD * 2)),
+        severity: group.count >= SIGNAL_SOURCE_THRESHOLD * 2 ? "high" : "medium",
+        repeatedActions: group.count,
+        windowMs: SIGNAL_SOURCE_WINDOW_MS,
+        shouldStop: group.count >= SIGNAL_SOURCE_THRESHOLD * 2,
+        signalSource: source,
+        toolCount: group.tools.size,
+      };
+    }
+  }
+
   return {
     isLoop: false,
     loopType: "none",
@@ -206,12 +337,14 @@ function recordAction(
   isError: boolean,
 ): void {
   const now = Date.now();
+  const signalSource = extractSignalSource(toolName, params);
   const record: ActionRecord = {
     toolName,
     paramsHash: hashParams(params),
     timestamp: now,
     isError,
     sessionId,
+    signalSource,
   };
 
   const history = actionHistory.get(sessionId) || [];
@@ -297,17 +430,7 @@ function generateVerifyFactStatement(
   return `The last ${failCount} ${toolName} call${failCount > 1 ? "s" : ""} reported success, but the actual state did not match. Detail: ${detail}`;
 }
 
-function getNestedValue(obj: Record<string, unknown>, dotPath: string): unknown {
-  const keys = dotPath.split(".");
-  let current: unknown = obj;
-  for (const key of keys) {
-    if (current === null || current === undefined || typeof current !== "object") {
-      return undefined;
-    }
-    current = (current as Record<string, unknown>)[key];
-  }
-  return current;
-}
+
 
 function matchesRule(toolName: string, rule: VerificationRule): boolean {
   if (Array.isArray(rule.toolName)) {
