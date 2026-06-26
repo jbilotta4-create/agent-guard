@@ -1,0 +1,5 @@
+=== 元数据 ===
+source: test
+from: hermes
+
+测试消息：这是Hermes发来的内容

@@ -1,0 +1,562 @@
+0:00 Thank you all so much for coming. I'm
+0:01 Joey. I'm like, I'm Giuseppe and I'm uh
+0:03 work at Render. I work on our uh runtime
+0:06 team uh which this year is really
+0:08 focused on the runtime for people
+0:11 building AI agent infrastructure.
+0:13 Um so, I want to talk a little today
+0:16 about uh the difference between um
+0:20 demos and actual production agents. Um
+0:23 so, everybody in this room has probably
+0:25 seen an agentic demo that blew you away.
+0:28 Um the agent goes through some complex
+0:30 tasks, magically returns the right
+0:32 answer, and it looks amazing. So, then
+0:35 someone inevitably says, "All right,
+0:36 let's ship that off to prod." And then 6
+0:39 months later, you're still firefighting
+0:41 it in staging because scaling agents is
+0:43 hard. Um so, there's a big gap between a
+0:46 compelling demo and a actual reliable
+0:49 production system. Um
+0:52 here in May 2026, LLMs are pretty good
+0:54 uh at raw code generation, but a
+0:57 frequent failure mode is the actual
+0:59 architecture of the infrastructure that
+1:01 they run on. Um so, that's what we're
+1:03 here to talk about today. Um before I
+1:06 keep going, uh if you haven't signed up
+1:08 for Render yet and want to build with us
+1:10 in a few minutes, please go sign up for
+1:12 Render right now. Uh that link right
+1:15 here is rndr.me/workshop.
+1:18 And then secondarily, uh if you would
+1:21 like to develop on Render today for
+1:23 free, um please go to this link right
+1:26 here, um and we will make sure that you
+1:28 have uh a workspace that you can work in
+1:31 and build with us for free.
+1:32 Um it will look later on like we're
+1:34 charging you, but we're not if you
+1:35 follow this flow.
+1:37 Great.
+1:39 Let me resume.
+1:40 Um
+1:41 so, these are charts of the uptimes of
+1:45 models that you have heard of before, I
+1:47 promise. Um
+1:49 there's something that's maybe uh clear
+1:51 here. Um
+1:53 one of the key bits about agents is
+1:55 their inherent unpredictability.
+1:57 Uh everything that goes wrong with
+1:59 agents often traces back to that
+2:01 unpredictability.
+2:02 How long will run, how much compute it
+2:04 will need,
+2:06 the temperature of the model. So, these
+2:09 screens are showing you another part of
+2:10 the unpredictability. The infrastructure
+2:12 that you rely on is also inherently
+2:15 unpredictable.
+2:16 And this randomness is load-bearing.
+2:19 You want agents to have flexibility and
+2:22 to be able to return different things in
+2:25 different situations.
+2:27 And unfortunately, most of today's
+2:29 modern infrastructure is built for a
+2:31 different world.
+2:32 It's built for a world where the same
+2:34 input produces the same output.
+2:37 That is not the case today.
+2:39 That contract is broken and most
+2:41 infrastructure hasn't really caught up
+2:43 to this reality.
+2:46 To take this to an extreme case,
+2:49 if you extrapolate from those charts I
+2:50 just showed you,
+2:51 there's a very high chance that
+2:53 something goes wrong. For a 20-step
+2:56 workflow, there's a one in five chance
+2:58 that your job is going to fail.
+3:00 That's a problem.
+3:01 Restarting from scratch is expensive in
+3:04 terms of time and money.
+3:07 So, you want to not have to do a full
+3:09 restart every time that you run into a
+3:11 failure.
+3:12 And that's just on the agent side. You
+3:14 also have your own APIs, your databases,
+3:17 etc. that you have to deal with. Every
+3:19 single step here compounds risk.
+3:22 So, how do we deal with this? Well,
+3:25 one easy way on the infrastructure side
+3:27 to handle this is to make sure that you
+3:28 over provision. Fantastic.
+3:31 You make sure that you have enough
+3:32 worker pools, enough idle compute, make
+3:35 sure that you can respond reasonably
+3:36 when load spikes.
+3:38 Great. Then the bill comes and your
+3:41 finance team comes in and says, "Hey, is
+3:43 there any way we can cut costs?" So, you
+3:46 scale back down and now you're under
+3:48 provisioned and the agent hits some
+3:50 memory ceiling and ooms 40 minutes into
+3:53 the task and the user gets the error and
+3:56 you've lost a user.
+3:58 Um, this fixed infrastructure is the
+4:00 wrong model for this new
+4:03 non-transactional workloads that we have
+4:05 today.
+4:06 Um, there's no static capacity number.
+4:09 It's a moving target constantly.
+4:12 Great.
+4:13 Um, so what does the right abstraction
+4:16 looks like? Well, um, it really needs to
+4:18 be durable infrastructure that maintains
+4:20 state across failures
+4:23 um, and has three important properties.
+4:25 The first here is, I'll call it elastic
+4:27 compute, meaning you should only have to
+4:29 pay for the capacity that you're
+4:31 actually using.
+4:33 And it should dynamically scale as you
+4:35 need it without having to pre-warm the
+4:37 system or anything like that. You should
+4:39 be able to handle one or 10,000 things
+4:42 all at the same time and it should be
+4:44 transparent.
+4:45 Secondly, you need durability all the
+4:47 way down to the individual task level. A
+4:50 crash 45 minutes into a long-running
+4:53 agent shouldn't mean a complete failure
+4:55 of the run. Durability means that your
+4:57 system remembers where you were, you can
+4:59 recover at any point of failure not
+5:01 having to go all the way back to the
+5:02 beginning.
+5:03 Last, um, you need full visibility. Um,
+5:06 part of durability is about being able
+5:09 to understand what went wrong and why it
+5:11 went wrong so that you can debug it and
+5:13 fix it for the future.
+5:15 Um, and this is true by the way both for
+5:17 humans and for agents that are doing
+5:19 that debugging for you.
+5:21 Great.
+5:23 Um,
+5:24 so I want to tell you about a thing that
+5:25 we're building at Render that does this.
+5:28 Um, and you're getting a little sneak
+5:29 peek of the thing that we're going to
+5:31 build here in a second. Um, so, um,
+5:33 Render Workflows is a durable layer
+5:36 that's designed specifically for
+5:37 long-running jobs and agentic workloads.
+5:40 Um, the idea is simple. You just write
+5:42 out your logic in functions and then all
+5:44 you have to do, um, is wrap it with a
+5:47 little bit of code and you're done.
+5:50 Um, you don't have to manage queues,
+5:51 worker pools, build custom retry logic.
+5:54 Um, you just describe in code what you
+5:56 need to happen and Render will take care
+5:58 of all of the rest.
+6:00 So, to go back to the problems I just
+6:02 laid out, here's how we solve this.
+6:04 Um, we have sub-second spin-up times,
+6:06 uh, which means you don't have to
+6:07 over-provision to stay responsive. Um,
+6:10 the declarative retries means that a
+6:12 crash at step eight means that you can
+6:14 retry right there and not have to go all
+6:16 the way back to the beginning. Um, you
+6:18 can support tens of thousands of
+6:20 concurrent tasks all at the same time.
+6:23 One or 10,000 is all the same.
+6:25 Um, and you get a full run history of
+6:27 everything that goes on so that you can
+6:29 understand what went wrong when it did.
+6:31 There's no guessing here.
+6:33 Um, and we have also state
+6:35 checkpointing, which is not here today.
+6:37 This is a beta product, but it is coming
+6:39 soon. Um, so that you'll be able to eat
+6:41 manually checkpoint any given state.
+6:44 Um, and you're getting this preview on
+6:46 the engine that we're going to work on
+6:46 here.
+6:47 Um, I want to give you a little bit more
+6:49 of a taste of how this actually looks.
+6:51 Um, here's an example of how this could
+6:53 fit in your code base. Um, we support
+6:55 both TypeScript and Python today, so
+6:57 you're getting the same example, two
+6:59 different ways.
+7:00 Um, so this all operates via an SDK. Um,
+7:04 you can install the SDK, you initialize
+7:06 the client, and then really all you have
+7:08 to do for any given task, in Python, you
+7:10 just toss a decorator right on top of
+7:12 your function. You're done. Um, the
+7:14 mental model here is actually really
+7:16 important because instead of going off
+7:19 somewhere else and configuring your
+7:20 infrastructure, you're annotating the
+7:22 code and that is also your
+7:24 infrastructure right there.
+7:26 Um, this is actually kind of important
+7:28 for people writing code with LLMs
+7:30 because LLMs tend to operate file by
+7:33 file. Um, and that means as much as you
+7:36 can co-locate concerns into one file,
+7:39 the more likely you are setting up your
+7:41 LLM to succeed.
+7:43 Um so that's a huge part of the design
+7:47 here.
+7:48 Um
+7:50 there's um also no framework to learn or
+7:52 like um YAML sidecar config files to
+7:55 manage. It's all right there. It just
+7:57 works.
+7:59 Great. Um hmm
+8:02 supposed to be a video here. Let's see
+8:03 if that works. Yeah, okay. So this is um
+8:06 another preview of this app that we're
+8:07 about to build, but you can see um how
+8:10 workflows operate here. You define a
+8:12 bunch of different tasks uh and then it
+8:15 works through those tasks both in
+8:16 sequence and in parallel and potentially
+8:19 massively parallel all at once.
+8:21 Um the shape of this product by the way
+8:24 is good for yes, AI agents, but it's
+8:26 also shaped like ETL pipelines, image
+8:29 processing pipelines, um all sorts of
+8:32 things are shaped this way. Um so to run
+8:36 through this example and the video
+8:38 played a little bit too quickly here,
+8:39 but uh this agent um
+8:42 is responsible for producing a website
+8:44 at the end of the day that shows all of
+8:45 the new restaurant openings in San
+8:47 Francisco cuz I like to go to new
+8:48 restaurants and this is a fun way to
+8:50 detect them. The way this works under
+8:52 the hood is it has to go off and scrape
+8:55 new restaurant information from a bunch
+8:57 of different sources. It then ships all
+8:59 of those things off, which again could
+9:01 be zero, could be a hundred, um to an
+9:03 LLM uh for data extraction and data
+9:06 cleaning. It then uses LLMs to uh
+9:09 deduplicate um and make sure everything
+9:11 is consistent um and then goes off and
+9:13 again by a scraping attempts to discover
+9:15 the menus of all of these new
+9:16 restaurants so that it can then go find
+9:19 via an LLM the dietary information like
+9:22 is it vegetarian, does it have
+9:23 gluten-free options, that sort of thing.
+9:26 Um there's a lot of moving parts and
+9:28 without workflows you would need to
+9:29 configure a job to a worker pool, retry
+9:32 logic, and this is all scattered across
+9:34 a bunch of different files um and
+9:36 there'd be a lot of like
+9:37 interdependencies that you would have to
+9:39 work out. With workflows, you just
+9:41 decorate your functions, uh, you're
+9:43 done.
+9:45 Okay.
+9:46 Um, a little bit more on the durability
+9:48 here. This is an example of how you can
+9:50 configure retries. Uh,
+9:52 we automatically set this up for you,
+9:54 but if you want more control, it's here
+9:56 for you. Um, and you can see on that
+9:59 like line right there with retry, you
+10:00 can max retries, the wait duration,
+10:02 backoff, um,
+10:04 the task, um, if it doesn't finish
+10:06 within 2 minutes, we'll kill it, um, and
+10:08 count it as a failure, uh, cuz you don't
+10:10 necessarily want LLMs going off and
+10:13 doing the wrong thing. Um, you don't
+10:15 have to worry about threads or manual
+10:17 state tracking, um,
+10:19 or manual retry logic. The platform will
+10:21 just handle all of this for you.
+10:24 Great. One last thing here on how it
+10:26 actually looks. Um,
+10:28 >> [clears throat]
+10:28 >> we have this thing for automatic task
+10:30 discovery. So, this is code kind of
+10:32 showing you the start of the agent
+10:34 working.
+10:35 Um, and you can see that it goes off in
+10:38 parallel and fires off a bunch of
+10:39 different tasks. Um, and it's doing this
+10:43 via language primitives. So, in Python,
+10:45 this means asyncio. There's no like
+10:48 other magical thing that you have to
+10:51 use. It's all native to the language.
+10:54 So, your code doesn't have to really
+10:56 change, uh, in order to adopt Render
+10:59 Workflows.
+11:00 Um,
+11:02 it's also important to point out that
+11:03 unlike other orchestration platforms, we
+11:06 don't need a manifest or a DAG of config
+11:08 files. Um, it's all just right there in
+11:10 your code with a few lines.
+11:13 Um,
+11:15 yeah, that's it. Great. So, let's build
+11:17 something.
+11:19 Um, there's a QR code right here, um,
+11:22 or you can go to render.com/workshop.
+11:25 Um, this is a document, um, which will
+11:28 walk through actually building this app
+11:30 if you're curious to build on with us
+11:33 and I'll demo that right here, too.
+11:35 Um and
+11:38 let's start doing that right now,
+11:39 actually. So, I'm going to demo this for
+11:43 you. Free to follow along and if you
+11:45 followed the steps earlier, you should I
+11:47 believe be invited into a workspace.
+12:01 Great.
+12:02 I'm saying we should pop up the form one
+12:04 more time, so let me go back.
+12:10 This This one here? Great. Okay. So, if
+12:13 you want to sign up and do this for free
+12:15 with us, please feel free to.
+12:18 >> Awesome. I'm doing that right now as
+12:19 well. Just ask Just ask Chris or why
+12:21 aren't we using Render's SDK? Because we
+12:23 have our back end hosted on you guys.
+12:25 So,
+12:26 >> Absolutely. So, this is This is an
+12:28 example that uses the Render SDK,
+12:30 actually. Yeah.
+12:34 Fantastic.
+12:38 All right. Hopefully everybody's got
+12:40 that.
+12:52 >> Awesome. So, for those of you who want
+12:54 to go through this build right now,
+12:56 there are three members from Render. You
+12:58 can just raise your hand and then
+13:00 they'll come and help you with any
+13:02 issues.
+13:05 All the Render team who can help, please
+13:07 raise your hands. Awesome.
+13:11 >> Yep. So, if you need help, there's
+13:12 people who actually built this in the
+13:15 room.
+13:15 >> [laughter]
+13:16 >> So, they're happy to help show you what
+13:18 this is. I'm going to start walking
+13:20 through this.
+13:21 So, we've got this GitHub repo
+13:24 right here
+13:26 that has uh this app already built. Um
+13:30 thank you in large part to Claude.
+13:33 Um
+13:33 and um
+13:36 we want Oh, I need to sign in.
+13:40 >> [sighs]
+13:45 >> Great.
+13:48 Okay.
+13:48 So, we just want to use this template.
+13:50 We'll create a new repository here.
+13:54 Um
+13:55 I'm going to claim ownership.
+14:03 Great.
+14:10 All right. Um in this doc you'll also
+14:12 see sort of an architecture diagram of
+14:14 how this agent works
+14:16 um and how it uses workflows in order to
+14:18 do its job. Uh I'll admit it's a little
+14:22 over-engineered just because we wanted
+14:23 to play with workflows. Um it uses
+14:25 workflows for things like sending out
+14:27 push notifications um which is a totally
+14:29 valid use case of workflows, but as I
+14:32 say, a little over-engineered for such a
+14:34 simple application.
+14:36 Um
+14:38 great.
+14:40 So, I'm going to keep going down here.
+14:45 All right. So, I've created the repo.
+14:51 And then I need to copy the repo URL.
+15:02 And I need to join the correct
+15:04 workspace.
+15:11 Oh, let's go up here. I'm going to need
+15:13 to sign in.
+15:17 Hopefully everybody was able to sign in
+15:19 okay.
+15:33 >> If you have any questions about anything
+15:35 I said, please feel free to raise a hand
+15:36 and I can work that through as we talk
+15:38 this or ask answer as we work this
+15:40 through. Yes, please.
+15:42 >> I'm just like on the under the hood, so
+15:43 I'm guessing for the compute like
+15:45 probably talking for that, but can you
+15:46 talk about like state
+15:48 where that's stored and like how, you
+15:50 know, once
+15:52 the workflow stops running, how far back
+15:53 can they go and some of those things?
+15:55 >> Yeah. Um so we take care of storing the
+15:59 inputs and the outputs of any given task
+16:01 for you. That's there. We'll show it to
+16:03 you in the dashboard where you can see
+16:05 kind of how every run of the workflow
+16:07 went. We maintain that for
+16:10 paying users for 30 days.
+16:17 Um one other point on state uh
+16:20 you can hand in more or less anything
+16:22 you want, but for performance reasons we
+16:25 often advise if you have large amounts
+16:27 of data that you want to pass into your
+16:29 workflow that you store that in object
+16:32 storage and then hand into the workflow
+16:34 the URL to the object storage so that
+16:37 the workflow can then go pull that. That
+16:39 actually winds up being way easier for
+16:42 people to debug
+16:44 down the road.
+16:48 Great.
+16:50 Any other questions?
+16:54 Great.
+16:56 Um I'm going to keep working through
+16:57 this
+16:58 doc here then.
+17:00 So it's trying to render.
+17:02 And I
+17:06 Raf, did you already add me in
+17:09 to the workspace?
+17:13 All right.
+17:17 Yep. Thank you.
+17:21 Okay.
+17:23 Uh, so in the workspace and then I need
+17:27 to Yep, I already did that.
+17:30 All right, so then I wanted to play the
+17:31 blueprint, which means I need to make a
+17:32 change
+17:34 um over in GitHub.
+17:42 So for non-workflow services, um Render
+17:44 has this concept of blueprints, which is
+17:47 basically um your infrastructure defined
+17:49 as YAML.
+17:50 Um and it's um custom to Render so that
+17:53 you can very fine-grain control um what
+17:56 actually exists on top of Render.
+17:59 Um so we need to make a change to one of
+18:03 these things. I forget which one.
+18:08 Oops.
+18:10 Right, we just need to rename the
+18:11 project.
+18:17 Cool.
+18:18 So I'm going to make it Joey.
+18:21 Commit that change.
+18:25 Yep.
+18:26 Thank you, Copilot.
+18:30 All righty.
+18:31 Um and then
+18:34 >> Don't mean to interrupt, Joey, but is
+18:36 Render working on the um
+18:38 added layer of for observability um
+18:41 that's native to Render?
+18:43 >> Yeah, so today Render offers um a number
+18:47 of things in the observability space. Uh
+18:49 we offer um for all of the different
+18:51 types of services that we provide, um we
+18:54 offer observability into there and
+18:55 that's everything from like um
+18:57 compute usage uh to the actual
+19:00 application logs that are coming out of
+19:01 that. Um we have also um been working
+19:05 hard within workflows on a different
+19:08 level of observability with we call it
+19:11 our execution viewer, but it's that view
+19:13 I showed you earlier where you can see
+19:15 every step of the workflow, um exactly
+19:18 what was going on there, how long each
+19:20 step took, uh and I in the future we'll
+19:24 be adding things like logging and
+19:26 tracing right there so that you can see,
+19:28 for instance, like when a particular
+19:30 task goes out to an LLM and asks it to
+19:33 do something, uh you want to be able to
+19:35 tell how long that took, maybe how many
+19:38 tokens that consumed, that sort of
+19:40 thing.
+19:44 Great.
+19:45 Did I answer your question?
+19:47 >> Yeah, that did. Thank you so much.
+19:48 >> You bet.
+19:50 Okay.
+19:52 Uh
+19:53 yep, we need to create a new blueprint
+19:55 instance. So, that means I can come over
+19:58 here to blueprints and I'm creating a
+20:00 new blueprint.
+20:06 Now, I need to
+20:13 >> Speaking of instances,
+20:15 um
+20:16 how does Render help
+20:19 manage the and scale the workers? Is
+20:22 that something built in within
+20:24 uh
+20:25 >> Yeah.
+20:25 >> workflows?
+20:26 >> Um yeah. So, we automatically scale as
+20:30 you need to scale. Um so, for example,
+20:33 the the thing I showed earlier where you
+20:35 can with in Python asyncio create a loop
+20:39 and just run through a bunch of tasks,
+20:41 that loop could be one thing, it could
+20:43 be a thousand things, and we will just
+20:45 take care of that for you. You don't
+20:46 have to preconfigure how many things you
+20:48 want. Going back to the point earlier
+20:50 about you really want, I'll call it
+20:52 elastic compute, um so that you can get
+20:55 as much as you need when you need it. Um
+20:58 historically people have handled this
+21:00 with serverless functions.
+21:02 Um there's a downside to that, though,
+21:04 because serverless functions are usually
+21:06 capped at a max duration on runtime. Um
+21:09 Um, and for a lot of AI agents, you
+21:11 really don't want that restriction. You
+21:14 want to be able to go for as much or as
+21:16 little time as you need. Um, so on
+21:19 Render, um, a task has a minimum runtime
+21:22 of 1 second, um, and a maximum runtime
+21:26 we artificially cap it today at 24
+21:28 hours, but
+21:29 that's something that if you need more,
+21:32 talk to us.
+21:34 Um, we can make that happen.
+21:36 Yeah.
+21:38 >> So, the backend access, is it through
+21:40 Render or you bring your own
+21:44 >> It is all through Render. Um, so it's a
+21:45 fully managed service. Um, and as a
+21:48 result of that, it means that we can
+21:49 offer you these performance guarantees,
+21:52 um, that would be much harder if you
+21:54 were bringing your own infra.
+21:55 >> Also, do we have a choice of which LLM
+21:59 to
+21:59 pair up?
+22:00 >> Absolutely, yeah. We're not making any
+22:02 deterministic on how you interface with
+22:04 LLMs or any other third-party APIs. You
+22:07 can write whatever code you want, we
+22:10 will execute it.
+22:14 >> [music]

@@ -1,0 +1,1 @@
+This is a test file for Agent Guard state verification.

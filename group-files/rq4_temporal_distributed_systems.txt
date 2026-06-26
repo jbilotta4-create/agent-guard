@@ -1,0 +1,120 @@
+0:03 So hi, my name is Cornelia Davis and we
+0:06 are going to talk about agentic AI.
+0:08 Temporal keeps coming up in those
+0:10 conversations and uh what I want to do
+0:13 is share with you why. I want to start
+0:15 with this diagram which shows you the
+0:17 call structure for rendering the Netflix
+0:19 homepage. It makes calls to
+0:21 microservices. Some of those
+0:22 microservices make downstream requests
+0:24 to other microservices. Now, we're going
+0:26 to make do a little bit of analysis and
+0:28 make a few simplifying assumptions.
+0:30 Let's say there's about a 100
+0:32 microservices in this tree. I think
+0:34 there's more, but let's make that
+0:36 assumption. And let's also assume that
+0:38 each one of those microservices boasts
+0:40 four 9s of availability. That's pretty
+0:42 good. Sometimes we aim for higher than
+0:44 that, but that's pretty good. Now, I'm
+0:47 also going to make another simplifying
+0:49 assumption, which is that the network is
+0:51 reliable, which we know it's not. But
+0:54 that makes our analysis a little bit
+0:56 easier. So let's suspend disbelief for a
+0:58 moment. By the time we get to the
+1:01 Netflix homepage, we have already lost
+1:04 two nines of availability. What that
+1:06 means is 5200 hours of downtime for the
+1:11 Netflix homepage per year. So that is an
+1:14 hour a week, which we know is
+1:17 unacceptable. So how have we dealt with
+1:19 that challenge in the past? Well,
+1:21 developers implemented a whole host of
+1:23 cloudnative patterns to make up for that
+1:27 unpredictability patterns like managing
+1:29 state externally or doing retries. So,
+1:34 let's turn our attention to AI agents.
+1:36 At a high level, they're pretty simple.
+1:39 We have an event loop and in that loop,
+1:41 we make calls out to the LLM to ask it
+1:44 for direction. It's what is driving the
+1:47 flow of the application.
+1:49 at that direction we might invoke some
+1:52 downstream tools make let's say micros
+1:55 service requests then we might consult
+1:58 with the user and then we'll go through
+2:00 the loop again so drilling into the
+2:02 details a little bit here you can see
+2:04 that of course in the upper right we're
+2:07 actually making calls to an LLM that's
+2:09 an API call and when we invoke the tools
+2:12 we're making downstream service requests
+2:13 as well say to a micros service but
+2:16 increasingly those downstream service
+2:18 requests are going to additional agents.
+2:21 Agents that look an awful lot like the
+2:23 one that you see on the screen here.
+2:25 Now, remember earlier that I said agents
+2:27 can call agents. Well, that isn't just a
+2:29 one-off. Increasingly, we're seeing
+2:32 agents calling agents who might be also
+2:34 calling other agents. Well, if you look
+2:37 at this, it starts to look a little bit
+2:38 like the Netflix call structure, right?
+2:42 Except one big difference. Notice that
+2:45 these nodes have loops. It's not just a
+2:50 micros service that is making a call to
+2:52 a downstream microser. It's doing that
+2:54 in a loop. So where we had a hundred
+2:57 downstream requests in the Netflix
+2:59 homepage example, we might have an order
+3:02 of magnitude, let's say a thousand
+3:04 downstream requests, if we do the math,
+3:07 we are losing even more nines of
+3:09 availability in a scenario like this.
+3:12 And now overlay all the things that can
+3:14 go wrong. Oh my gosh. I'm hoping this
+3:17 scares you as much as it scares me. So,
+3:19 here's the punchline. AI agents need to
+3:22 deal with all the distributed systems
+3:23 challenges that we've had to deal with
+3:26 with cloudnative apps in the last 10 or
+3:28 15 years, except on steroids. And how
+3:32 did we deal with those then? Again, all
+3:35 of these cloudnative patterns. But
+3:37 here's the thing. In the last era, we've
+3:41 made the developer responsible for those
+3:43 patterns. the developer had to implement
+3:46 for example externalizing state and
+3:49 bringing it back into a different
+3:51 instance. What I want to introduce to
+3:53 you today is that temp with temporal you
+3:56 get resilience as a service. You as the
+3:59 developer aren't responsible for
+4:01 implementing those patterns. You simply
+4:03 implement your application your AI
+4:05 agentic application as a temporal
+4:08 application and you get a whole host of
+4:11 cloudnative patterns for free. So which
+4:14 of these cloudnative patterns do you
+4:15 get? Well, you get event driven. You
+4:19 write your code and behind the scenes
+4:21 temporal creates it as an event- driven
+4:23 architecture. CQRS, yep, that's in
+4:26 there. State management, so you don't
+4:29 have to deal with statelessness yourself
+4:32 in temporal. Retries, yep, that is there
+4:36 too. So I invite you to take a look
+4:38 yourself. We've got a great sample
+4:39 application that shows temporal used to
+4:42 implement an AI agent. And with that, I
+4:46 thank you for your attention. I would
+4:48 love to hear from you and you can see my
+4:49 coordinates on the screen here. Um, one
+4:52 of the best ways to find me is on the
+4:54 temporal community Slack. I'm the only
+4:56 Cornelia Davis there and I look forward
+4:58 to hearing from you. Thanks so much.

@@ -1,0 +1,198 @@
+[0.8s] If you work in a regulated industry like
+[2.8s] insurance or finance, I'm here to talk
+[4.7s] to you today about how Temporal will
+[6.4s] help make sure that you remain compliant
+[8.3s] while using AI agents to automate your
+[10.3s] work.
+[13.8s] Hey everyone. My name is Sammy Bar, and
+[15.9s] today I'm going to talk to you about
+[17.1s] something that at Temporal we're
+[18.4s] starting to call [music] fixed flows.
+[21.2s] Once we talk about what a fixed flow is,
+[23.0s] we'll also talk a little bit about why
+[24.4s] you might use a fixed flow. We'll talk
+[26.2s] about Temporal and its role in fixed
+[28.6s] flows, and then we'll look at an example
+[31.3s] and talk about how to get started.
+[33.6s] So, what is a fixed flow? Let's answer
+[35.6s] this first. Well, many of you may be
+[37.8s] familiar with the agentic loop or the
+[39.8s] react agent. This is a loop where an LLM
+[42.8s] acts as a brain
+[43.9s] >> [music]
+[44.0s] >> and decides what it thinks it should do
+[45.8s] next based on some prompts.
+[47.8s] >> [snorts]
+[48.0s] >> It then uses code to act like a nervous
+[50.4s] system and connect it to tools. [music]
+[52.4s] Those tools allow it to interact with
+[54.3s] the world. Once it interacts based on
+[56.8s] its prediction, it observes the output
+[59.4s] or outcome of those actions, it makes
+[62.4s] another prediction and repeats. This is
+[64.6s] the react loop. This is great for
+[67.0s] solving problems that have traditionally
+[68.4s] been hard to solve with software
+[70.0s] engineering, like knowledge tasks and
+[72.5s] other sorts of complex judgment-based
+[75.0s] workflows. However, like human brains,
+[77.8s] these agentic brains can often make
+[80.0s] mistakes or skip steps
+[81.9s] >> [music]
+[82.0s] >> or miss important context in the effort
+[84.6s] to optimize towards accomplishing its
+[86.5s] goal. Because of this, agents aren't
+[88.6s] always the best fit for certain types
+[90.4s] [music] of workflows.
+[92.3s] So, what is a fixed flow exactly? Well,
+[95.6s] in a fixed flow, an LLM can still be the
+[98.0s] brain of individual steps in your
+[100.2s] business process. However, [music] code
+[103.1s] is going to serve as a deterministic
+[104.8s] type of brain powering and protecting
+[107.6s] the flow of the steps in your process as
+[110.0s] it proceeds. Your code will also perform
+[112.8s] tightly [music] contained specific steps
+[115.1s] to reduce the cost and improve the
+[117.1s] reliability of your workflow in
+[118.6s] production while still allowing the LLM
+[120.9s] to do the things that it excels at.
+[122.5s] >> [music]
+[123.4s] >> Temporal is fantastic for building fixed
+[125.7s] flows because of the way that the code
+[127.9s] in Temporal is structured.
+[130.0s] If you aren't familiar, Temporal is a
+[131.8s] code-first workflow engine that works by
+[134.5s] separating code into deterministic
+[137.1s] workflows and item potent activities.
+[140.6s] Temporal guarantees that if your
+[142.6s] workflow crashes during execution, it
+[145.2s] will resume from the point of failure
+[147.6s] because it keeps track of the state of
+[149.4s] your workflow and recovers using that
+[152.4s] state plus the workflow code.
+[156.9s] This is great for fixed flows where we
+[159.8s] want to ensure that if there's an API
+[161.9s] outage or our host dies, that we don't
+[164.8s] lose track, for example, of somebody's
+[166.6s] insurance claim. In addition, the code
+[168.7s] that we need to write because we don't
+[170.2s] have to deal with all of the code to
+[172.1s] manage retries and keep track of state
+[174.4s] is likely. Here you can see a work run
+[177.7s] method for a insurance claims workflow.
+[181.5s] In this code, we do things like look at
+[184.0s] queries that are relevant to our
+[185.4s] business, execute a series of defined
+[188.2s] steps like
+[190.0s] uh
+[190.8s] running checking coverage, checking if
+[192.9s] we're liable, checking for damages and
+[195.5s] whether they meet uh the requirements of
+[197.6s] the policy, and also checking if this is
+[199.7s] likely fraudulent. Uh and once we've
+[201.6s] done that, we use an LLM to critique the
+[203.6s] outputs of each of those steps, uh and
+[205.8s] then also use an LLM to make a decision.
+[207.8s] But in our workflow, this code is
+[210.1s] ultimately steering the entire process.
+[212.6s] Within each activity, we also use code
+[215.4s] to do tasks like calling an LLM, but we
+[218.2s] could also use it to do things like
+[219.7s] strip away PII
+[221.6s] uh or also interact with other systems
+[223.8s] at our company, checking if counts
+[225.4s] accounts exist, [music]
+[227.2s] uh what are their coverage limits and
+[228.9s] things like that. So, let's see it now
+[231.0s] in action.
+[233.2s] Here we see on the left the uh insurance
+[236.6s] claims console and on the right the
+[238.3s] Temporal UI.
+[239.8s] Temporal comes with this UI out of the
+[241.4s] box, which is super helpful for managing
+[243.4s] your workflows. Let's see one run in
+[245.4s] real time.
+[246.6s] I'm going to select [music] two images
+[248.2s] that represent a client's claim.
+[256.4s] I'm going to start this workflow, and
+[257.7s] we're going to see it pop up in the UI.
+[259.4s] We can now see each step execute in
+[261.6s] series uh as this workflow progresses.
+[264.2s] So, you can see that Temporal has
+[265.5s] extracted the claim from the images,
+[268.1s] pulled up relevant context from company
+[270.0s] documents to feed to the agents as we
+[271.9s] run them,
+[273.0s] and now we're going to start running a
+[274.0s] series of uh LLM-powered steps one after
+[277.1s] another in order to make a decision
+[278.8s] about whether or not we think this claim
+[280.6s] uh is valid, invalid, or needs human
+[282.8s] review.
+[287.4s] As it runs, you can see we've done
+[288.7s] things like strip away PII to avoid
+[291.0s] leaking it to Temporal or the LLM, and
+[293.6s] we can see the input as well as the
+[295.4s] output of each step.
+[304.4s] As this runs, I'm now going to take down
+[306.1s] my worker.
+[317.8s] Let's see what happens. You can see that
+[319.4s] the step has now failed, and we're going
+[320.8s] to automatically retry it again, but I
+[323.2s] haven't written any kind of retry logic
+[326.4s] or
+[327.6s] uh state management code.
+[329.4s] So, let's relaunch the worker.
+[332.6s] And we should see this succeed here in a
+[334.1s] moment.
+[345.8s] After a second attempt, [music] we've
+[347.5s] now succeeded.
+[349.6s] We'll make our final decision next.
+[359.8s] Even though this step is completed, we
+[361.2s] can see the workflow is still running.
+[363.4s] Why is that? Well, the models decided
+[365.4s] that we need human review, and so their
+[367.3s] packet of decision-making materials has
+[369.0s] been sent to me here on the left.
+[372.2s] Why has it decided that we need human
+[373.9s] review?
+[375.0s] Well, there are certain risk flags that
+[376.5s] have come up.
+[377.7s] Uh the documentation package is
+[379.0s] incomplete. Uh it's missing supporting
+[381.1s] documents like a police report, medical
+[382.9s] note, and second repair estimate, and
+[385.1s] this person has multiple claims filed in
+[386.8s] the last 3 years. I'm going to be
+[388.3s] generous, and I'm going to go ahead and
+[389.5s] approve it.
+[391.6s] However, maybe not everyone would do the
+[393.3s] same. We can see that now that I've
+[395.1s] submitted this report, we get receive a
+[397.0s] signal on the workflow, which has said,
+[400.0s] "Hey, this workflow is completed," and
+[402.0s] we've marked it as such. Notice how this
+[404.0s] workflow kind of lives forever. It was
+[405.8s] just indefinitely awaiting this signal,
+[407.7s] which doesn't cause you as the developer
+[409.4s] or operator anything, um but allows to
+[412.4s] you to ensure you never lose track of a
+[414.4s] claim.
+[416.3s] This is just one example of how we can
+[417.9s] use fixed [music] flows with Temporal.
+[419.9s] If you're curious to see more, head to
+[421.1s] our code exchange, where I've got an
+[422.4s] example of this workflow as well as
+[424.3s] several others
+[425.8s] >> [music]
+[425.8s] >> uh to get you started. You'll see
+[427.8s] patterns like how to strip away PII, how
+[430.2s] to build fixed flows, and even how to
+[431.7s] embed agents into individual steps of
+[433.8s] your fixed flow while retaining a
+[435.5s] deterministic process uh for the overall
+[438.3s] sequence.
+[439.6s] Again, I'm Sammy Bar, and I hope this
+[441.4s] has been helpful. We'll talk again soon.
+[443.4s] Take care.

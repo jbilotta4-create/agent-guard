@@ -527,13 +527,11 @@ function verifyState(
     }
 
     case "exit_code": {
+      // Only flag as verification failure when the tool reported SUCCESS
+      // but the actual state didn't match. If isError=true, the failure is
+      // already visible — no need for a silent-failure alert.
       if (isError) {
-        return {
-          passed: false,
-          rule,
-          detail: `Command failed with error: ${targetPath}`,
-          actualState: "nonzero_exit",
-        };
+        return { passed: true, rule, detail: `Command reported error explicitly (not a silent failure): ${targetPath}` };
       }
       // For exec, if no error was reported, we trust the exit code was 0
       // In a full implementation, we'd parse the actual exit code from the result

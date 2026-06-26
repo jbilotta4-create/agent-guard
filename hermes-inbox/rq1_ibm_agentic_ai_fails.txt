@@ -1,0 +1,128 @@
+0:00 When an agentic AI system fails, the most common reaction we get is the model probably hallucinated.
+0:06 Now it's quite understandable why we come to that conclusion.
+0:10 Because in the past, the large language models have been known to be extremely inconsistent.
+0:15 They are probabilistic models.
+0:16 They're not deterministic.
+0:18 But in the last couple of years, there has been a lot of improvement in the architectures of these models.
+0:23 And today, we are able to get consistently good outcomes from them.
+0:27 So today, when an agent-ic AI systems fails, is it's less likely because of model failure or prompt quality.
+0:34 It's more likely that there are flaws in the system design.
+0:38 Now there's this common perception that agentic AI system is nothing but a large language model with access to tools.
+0:51 When in fact the definition is that it's a much bigger system that can Observe.
+1:09 And it does this in a cyclical or iterative format in order to drive more consistent results.
+1:16 So because of this complex system, we see more types of failures today than we did in the past with just simple chatbot applications.
+1:26 In this video, let's dive in and understand what are three most common failure modes of Agent AI systems.
+1:33 Let's understand why these failure modes happen.
+1:36 What we might be able to do to mitigate or prevent them in real world scenarios.
+1:41 Let's start off by understanding the most common failure mode, which is the infinite loop.
+1:52 Like the name suggests,
+1:53 this is a scenario where the agent repetitively performs similar or same tasks without making any meaningful progress towards the completion of its goal.
+2:03 Let's understand with an example.
+2:05 Let's say you task an agent to find a document for you.
+2:08 The agent starts by configuring the search.
+2:11 It's gonna call a search tool and word the search in a certain way so that it can get relevant results.
+2:17 So firstly, it's gonna start searching.
+2:27 Then once it gets the results, it's going to evaluate those results.
+2:34 If this results could look good, it's going to give you the answer.
+2:38 If this don't look good it's gonna start planning again on how to do this better.
+2:45 It goes back to searching.
+2:47 It might word it in a slightly different way to do the next retry.
+2:52 And then it's gonna evaluate, and if it's not looking good, it's going to plan again.
+2:56 Now let's assume that this document that you requested does not exist in the system.
+3:00 Now the agent does not know that.
+3:02 So each time it does the search, it is getting results, but the results are pretty vague.
+3:07 So it's gunna replan and retry again and again until it gets the answer.
+3:11 But here, the truth is it cannot get the answer because the document is non-existent.
+3:16 So basically, the agent is stuck in an infinite loop of retrying and planning, evaluating, and searching.
+3:24 So this is what we call the infinite loop.
+3:26 And one main reason this happens is that there is no proper termination condition.
+3:42 Meaning that the agent doesn't know when to stop trying.
+3:46 Another reason this happens is with each retry, we don't know whether the agent is actually searching differently.
+3:53 Has it fundamentally changed its approach in searching?
+3:56 If we are not tracking the action of the agents, then we wouldn't know that.
+4:02 So not tracking actions.
+4:09 Is another reason.
+4:11 The third reason is not tracking the progress of the agent.
+4:16 Now with each retry, is it getting better results?
+4:19 Now if you're not tracking that, there is no way that we know whether the retries are successful or not.
+4:25 So the agent keeps trying and getting the same results and not making any progress.
+4:30 So lack of progress tracking.
+4:37 One way to mitigate this, and the most simple way, is by setting the termination conditions.
+4:44 So set up a max retries, or it could be max number of steps that the agent can take before it decides that it cannot find the answer for you.
+4:53 It could also be the max runtime usage.
+4:56 So that way, you're not stuck in this loop where you're wasting resources like compute and the API costs are going up.
+5:06 Secondly, you can also start doing the action tracking,
+5:09 where you actually look at the actions that the agent is taking, compare them with previous actions and see if they're significantly different.
+5:16 If the search is similar across all the retries, then there's no point wasting your compute to search with the same criteria.
+5:24 So that can help you mitigate the infinite loop scenario.
+5:29 Progress tracking will ensure that you are getting better outcomes with each retry.
+5:35 So when you track progress, let's say in this example, you will know whether you're getting better results with a retry or not.
+5:42 So that way you can mitigate this infinite loop scenario if you're not getting better result with each retry.
+5:49 That is how you can Mitigate Infinite Loop.
+5:51 Now, this is not a super serious failure mode, but it will lead to wastage of resources and increased costs.
+5:58 And it is important that we account for it and design the systems to mitigate this particular failure mode.
+6:05 The second failure mode that we are going to talk about is called hallucinated planning.
+6:17 Now like the name suggests, this is a scenario where the agent is gonna come up with a plan that's plausible versus possible.
+6:25 In other words, it's gonna come with a plane that looks great on paper, but fails at execution.
+6:31 Let's understand with an example.
+6:33 Let's say you ask an agent to book you flights to Milan that are under $500.
+6:38 The agent is going to take the task and come up a very beautiful plan.
+6:42 It's going to say, hey, I'm gonna.
+6:44 Use the travel booking API and search for flights.
+6:47 I'm gonna set a filter for flights that are under $500.
+6:51 I will book them and I will send you a confirmation email.
+6:54 Now that looks like a great plan, but it will fail at execution because you probably did not configure that agent with access to the travel API.
+7:04 You also probably did no provide your email address for it to actually send an email to you, or it probably does not even have access to an email tool.
+7:13 Now, this is a classic scenario where the agent is assuming things and assuming capabilities instead of relying on what it actually has access to.
+7:23 Now, let's look at why that might happen.
+7:25 Firstly, it can happen because your tool capabilities are not well-defined.
+7:36 So the agent doesn't know what your tools can and cannot do.
+7:40 It can also happen because you're asking this agent to plan and execute without separating those two things out.
+7:47 So basically there is no validation.
+7:53 Of the plan that's happening before the plan gets executed.
+7:57 So you are hit with errors because the agent executes things that cannot be done.
+8:03 It can happen because the agent is assuming capabilities instead of checking for constraints.
+8:14 Constraint shape.
+8:17 So how might we go about mitigating this?
+8:20 Firstly, you should start describing your tools very clearly to the agent.
+8:26 Clearly describe what the tools can cannot do.
+8:28 Clearly define the tool schema and let the agent understand the capabilities and limitations of your tool.
+8:35 Next, you can go with architectures such as multi-agent.
+8:44 Where there is a verifier agent in between planning and executing.
+8:48 So the verifier agents could look at the plan and say, hey, this cannot be done, or this can be done.
+8:53 You could also have a human in the loop instead of a verifying agent for more serious and high-risk plans.
+9:01 So that way, your plan is validated before it goes on for execution.
+9:05 And thirdly, make sure that you clearly specify the constraints.
+9:10 So let the agent know that it's- can do these things and cannot do a certain set of things.
+9:15 And instruct the agent to ask for clarification before making assumptions.
+9:20 The agent could say, do you want me to use a travel API instead of just straight away making up a travel api by itself.
+9:28 So by setting those things in place, you will ensure that your agent does not get stuck in the hallucinated planning failure mode.
+9:37 Let's jump into the final failure mode, which is the unsafe tool use.
+9:49 This is a scenario where an agent executes an action that is technically valid, but could be risky, destructive, or unintended.
+9:58 This happens mainly because the tools are overprivileged.
+10:09 Let's understand with an example.
+10:11 Let's say you have an agent that is supposed to go and delete outdated records from a database.
+10:16 But instead of deleting outdated records or archived records, it's going ahead and deleting active records that are important to you.
+10:24 Another example is that of an agent that sends autonomous emails or automated emails to recipients with content that has not been reviewed.
+10:32 So this also happens when there is no proper approval workflow in place.
+10:43 It also happens when there is no clear distinction between the read and write axis that you give these tools.
+10:55 How might we go about mitigating that?
+10:58 Firstly, it's important to give only those privileges that are needed to the tools.
+11:03 So it's always good to adopt a principle of least agency.
+11:12 With the tools because mitigation starts with permission design in this scenario.
+11:20 Also create a proper approval workflow for high-risk tasks.
+11:24 If needed, have a human in the loop to review the task before it's sent for execution.
+11:31 So having an approval workflow is extremely helpful.
+11:34 Third, separate the tools into tiers based on the kind of access.
+11:39 So, print out.
+11:40 The tools based on whether they have the read axis or write axis or a delete axis.
+11:45 That will ensure that one tool doesn't go ahead and commit actions that it's not supposed to be doing.
+11:51 By following these principles, you will be able to mitigate the unsafe tool use, which actually could be pretty damaging to the reputation of the company.
+12:00 So it's very important to actually design your system to account for this failure mode.
+12:04 Agentic AI failures are not random occurrences, they are very much predictable.
+12:09 And they happen for a reason.
+12:11 They happen because of too much autonomy or too little constraint.
+12:18 Or they also happen because there is no proper monitoring or tracking in place.
+12:24 Let's remember that engineering discipline is key to building reliable agents.
+12:30 I hope you found this information helpful.
+12:32 Thank you so much for your time.

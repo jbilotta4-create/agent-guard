@@ -1,0 +1,58 @@
+{
+  "name": "Agent Guard",
+  "description": "Runtime-internal tool call governance hook for AI agents. Detects and optionally blocks repetitive loops, prevents resource waste from unbounded agent execution.",
+  "version": "0.3.0",
+  "provider": {
+    "name": "shi",
+    "url": "http://43.136.226.248"
+  },
+  "capabilities": [
+    {
+      "name": "loop_detection",
+      "description": "Detects three types of agent loops: action_loop (same tool+params repeated), output_loop (same tool with different params), error_loop (consecutive failures)",
+      "inputs": ["tool_call_history", "session_context"],
+      "outputs": ["loop_type", "repeats", "severity", "confidence"]
+    },
+    {
+      "name": "tool_call_blocking",
+      "description": "Optionally blocks tool execution before it happens via before_tool_call hook. Prevents resource waste from infinite loops.",
+      "inputs": ["loop_detection_result"],
+      "outputs": ["block_decision", "block_reason"]
+    },
+    {
+      "name": "action_logging",
+      "description": "Records all tool call events with timestamps, params hashes, and error status for audit and analysis.",
+      "inputs": ["tool_call_events"],
+      "outputs": ["jsonl_proof_file"]
+    }
+  ],
+  "endpoints": [
+    {
+      "type": "openclaw-plugin",
+      "url": "https://github.com/agent-guard/agent-guard-plugin",
+      "description": "OpenClaw plugin with before_tool_call and after_tool_call hooks"
+    },
+    {
+      "type": "mcp-server",
+      "url": "http://43.136.226.248:3000",
+      "description": "MCP server for loop detection queries (standalone, not embedded)"
+    }
+  ],
+  "authentication": {
+    "type": "none",
+    "description": "Plugin runs within agent runtime, no separate auth needed. MCP server currently unauthenticated."
+  },
+  "pricing": {
+    "type": "free",
+    "description": "Open source. No cost."
+  },
+  "tags": ["agent-governance", "loop-detection", "tool-misuse", "owasp-as02", "openclaw-plugin"],
+  "verifiedFailures": [
+    {
+      "id": 6,
+      "title": "Governance tool locking itself",
+      "description": "blockOnLoop=true blocked ALL tool calls due to cascading false positives, locking the agent completely",
+      "lesson": "Governance tools themselves need governance. 'No governance →失控' and '有治理但治理失控' are two extremes both needing solutions."
+    }
+  ]
+}

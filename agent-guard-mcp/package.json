@@ -1,0 +1,11 @@
+{
+  "name": "agent-guard",
+  "version": "1.0.0",
+  "description": "Agent loop detection, token budget, and error tracking MCP server",
+  "main": "server.py",
+  "type": "module",
+  "scripts": {
+    "start": "python3 server.py"
+  },
+  "keywords": ["mcp", "agent", "loop-detection", "governance", "token-budget"]
+}

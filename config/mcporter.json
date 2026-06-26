@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "agent-guard": {
+      "command": "--output"
+    }
+  }
+}

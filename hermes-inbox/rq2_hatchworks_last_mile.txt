@@ -1,0 +1,1204 @@
+0:00 And it's great if you're, you know, 70,
+0:01 80, 90, even 99% correct, but 99%
+0:06 correct is still failure when it comes
+0:08 to mission critical systems. A lot of
+0:09 these code gem tools are over here. The
+0:12 mission critical systems are over here,
+0:13 and we have to help bridge that gap.
+0:15 Welcome to the Talking AI podcast, where
+0:17 we talk AI with both experts in the
+0:19 field and early adopters. I'm your host,
+0:21 Matt Paige, and we're here to demystify
+0:23 AI for you so you can get some value
+0:25 from it. Let's talk some AI.
+0:30 AI can now write code faster than any
+0:32 human alive. And most of the time,
+0:34 that's more than good enough. That's the
+0:36 magic powering the entire vibe coding
+0:38 wave, the agentic coding craziness that
+0:41 we're experiencing right now. But
+0:42 there's a category of software where
+0:44 most of the time just doesn't cut it.
+0:46 The code running a fighter jet, a power
+0:48 grid, an autonomous vehicle, a piece of
+0:50 medical hardware. When the code is
+0:52 wrong, the consequences aren't just a
+0:54 bug. there a recall, an accident, a
+0:57 national security incident. And that's
+0:59 the gap that Code Medal just raised $125
+1:01 million to close. And that's why Ryan
+1:04 ET, the former CEO of Tableau, joined as
+1:06 president and COO to run point on what
+1:09 he calls safely delivering the last mile
+1:11 for missionritical industries. We're
+1:14 going to get into what that actually
+1:15 means, where Code Metal sits in this
+1:17 crowded market of cursor clock and a
+1:19 host of other tools, and what an
+1:21 operator who ran one of the most iconic
+1:23 Percy SAS businesses thinks about this
+1:25 crazy world where agents are
+1:27 proliferating everywhere. Ryan, welcome
+1:30 to Talking AI.
+1:32 >> It's great to be here, Matt. Thank you
+1:34 for having me.
+1:35 >> Yeah, this this is going to be an
+1:36 exciting one because this is a this is a
+1:38 true uh gap, I think, in the market.
+1:41 like we we use AI at our company 24/7.
+1:44 Our engineers are fully on board with
+1:47 it, but the point that you're solving
+1:48 here is critical. And uh and just on a
+1:52 personal note, I was an OG Tableau user
+1:55 back in the day, like a complete fanboy
+1:57 of Tableau, but what I loved about
+1:59 Tableau is it wasn't just like the
+2:01 beautiful visualizations and charts, but
+2:03 it completely democratized analytics.
+2:06 And suddenly anybody in business could
+2:08 be, you know, their own data analyst.
+2:10 And now we're living through something
+2:12 very similar with AI where it's
+2:14 democratizing coding, design, video,
+2:17 writing. I mean, you name a function or
+2:19 purpose in a business. And it feels like
+2:21 it's democratizing it to where anybody
+2:23 can build. But you state your ne next
+2:27 chapter on the idea that there's a
+2:28 category where democratization
+2:31 breaks down a little bit. So, walk me
+2:33 through what you saw and what attracted
+2:36 you to this mission that Code Metal is
+2:39 going on.
+2:40 Yeah. Um, and by the way, thank you uh
+2:43 in my old capacity for being a Tableau
+2:45 community member because I'm still very
+2:47 connected to that uh that experience.
+2:49 So, look, I think, you know, coming into
+2:52 an environment which we're in now, which
+2:53 is this kind of AI world that we're in.
+2:56 I really just saw this large opportunity
+2:58 to work with really a lot of smart
+3:00 people, a lot of you know MIT Lincoln
+3:02 Lab engineers um like our co-founder uh
+3:06 or sorry founder and CEO Peter Morales
+3:09 and really it was you know I had all
+3:11 this great experience and I'm very
+3:13 grateful for my time at Salesforce and
+3:14 Tableau and and the things before that
+3:16 but it was like how do I take all these
+3:19 things that I've learned over you know
+3:20 19 20 years and apply them to you know a
+3:24 new industry but also an industry in a
+3:26 in a company specifically like code
+3:28 metal where I could make a bigger
+3:29 impact. What do I mean by that? Well, it
+3:32 was, you know, make a difference, make
+3:33 an impact because ultimately there's so
+3:36 many there's a lot of AI noise. Of
+3:37 course, it's like, you know, your
+3:39 podcast is called Talking AI, so it's
+3:41 like there's a lot, right?
+3:42 >> We're part of the hype, man.
+3:43 >> We're part of the hype, but the hype's
+3:45 exciting, right? We're exciting to be in
+3:47 this environment, but
+3:48 >> there's this concept of like how do we
+3:50 make AI more trustworthy? And you know
+3:53 because if you don't know enough it
+3:55 could be dangerous. You of course there
+3:57 and we'll talk probably about this today
+3:58 but you know my opportunity I looked at
+4:01 it was like how do I make an impact
+4:03 there's this opportunity to make AI more
+4:05 trustworthy and ultimately I think there
+4:08 are a lot of people that don't
+4:09 understand it. So, you know, it's
+4:11 critical for our nation, for our
+4:14 military, you know, for our our
+4:16 government, for mission critical
+4:18 companies maybe that ship automobiles or
+4:21 airplanes or go down the list of things
+4:23 that we depend on every day as, you
+4:26 know, citizens. And if it's not done
+4:28 correctly or used correctly, like that
+4:30 could be problematic. And there are many
+4:32 ways and I can explain them, but like
+4:33 that that could be problematic. And I
+4:35 think there's a lot of noise around
+4:37 like, well, is it going to take my job?
+4:39 What about is it safe for the things
+4:40 that I depend on every day like when I
+4:42 go get in my car or when I get on an
+4:44 airplane? Like this is sort of the next
+4:45 chapter of is it safe? Is it
+4:48 trustworthy? And and our intent at Code
+4:50 Medal is to really deliver that last
+4:51 mile.
+4:52 >> Quick break in the pod. Our state of AI
+4:54 2026 report just dropped and it breaks
+4:56 down what actually is changing in AI,
+4:58 what's hype, and what leaders need to be
+4:59 paying attention to this year. You can
+5:01 grab it right now in our show notes or
+5:02 at hatchworks.com.
+5:04 >> Yeah, because
+5:04 >> that's how I looked at the opportunity.
+5:06 Yeah, but you're you're injecting this
+5:09 uncertainty into the world with this new
+5:11 amazing thing we have. It's AI and
+5:14 generative AI, but there's a lot of
+5:16 legacy systems that exist, these
+5:18 deterministic systems. So, it's like how
+5:20 do you graft those two together in a
+5:23 sense? I I feel like that's part of it.
+5:25 And you talk about like the last mile
+5:27 for mission critical industries. I'm
+5:29 curious like and this probably um you
+5:32 know a bleeding edge of where is the
+5:34 last mile? Where does it start and where
+5:36 does it end? Or is it almost like a
+5:37 holistic view of how you build and
+5:41 leverage AI and in the coding and
+5:43 building process?
+5:45 I mean, I think the last mile is
+5:47 relevant if we talk about things like
+5:49 codegen tools and there are a lot of
+5:50 them today, the cloud codes, the
+5:52 codeexes, the cursors, and they're all
+5:54 great, right? We know this. Um, we use
+5:56 them ourselves. Um but when you get into
+5:59 and you can even ask the various AI
+6:01 tools today like you know can you can
+6:04 you generate code let's say can you
+6:06 translate C++ to Rust and guarantee
+6:09 it'll be production ready and safe and
+6:12 they will all all the tools will tell
+6:13 you well almost but not quite um they
+6:17 can't guarantee it and that's the that's
+6:18 the tool itself right and we know that
+6:20 the hardest part is verification and you
+6:23 know will it be correct um have we
+6:26 tested at every use case or edge case.
+6:29 Do we know every requirement? Is it
+6:31 secure? Um, this is kind of like what I
+6:34 call the last mile because there's just
+6:35 a lot of stuff that people forget at the
+6:37 end of the day that needs to happen.
+6:38 It's great if you're, you know, 70, 80,
+6:40 90, even 99% correct,
+6:43 >> but 99% correct is still failure when it
+6:46 comes to mission critical systems. And
+6:48 so, how do we, you know, our goal is to,
+6:51 you know, I think about like a lot of
+6:52 these codegen tools are over here. the
+6:55 mission critical systems are over here
+6:57 and we have to help bridge that gap.
+6:59 It's the assurance if you will like how
+7:01 do I how can I be assured that when I
+7:04 translate or modernize code that it will
+7:07 actually work in a mission critical
+7:09 environment and I think that is that is
+7:11 really what we're trying to solve and we
+7:13 are solving and you know it's it's a lot
+7:15 but it's also very you know it's a lot
+7:16 to unpack and understand but it is a big
+7:18 opportunity. Wait, it's funny you
+7:20 mentioned like if you ask AI today if it
+7:23 could do I forget the two. You mentioned
+7:25 Rust and something else. I feel like
+7:27 most of the time instead it'll be like
+7:29 heck yeah I can do that. No big deal.
+7:31 Then in the end you're like you screwed
+7:33 XYZ up because you do have that
+7:35 sycopantic nature with AI where it will
+7:38 reassure you and say yes I got this even
+7:40 if it doesn't have full context which is
+7:44 scary I think when you get to some of
+7:45 these uh you know mission critical
+7:48 things like you're talking about. But
+7:50 you mentioned it though like your teams
+7:52 they use cloud code and some of these
+7:54 other tools. So, I think it'd be helpful
+7:56 like where you're not necessarily in
+7:59 competition with these tools. It's it's
+8:02 almost like um tertiary or or uh in
+8:06 support of these these other tools. So,
+8:08 where if you look at the map of
+8:10 everything going on in this crazy world
+8:12 of AI coding tools and AI tools in
+8:15 general, like where where does Code
+8:16 Metal sit in that uh that that
+8:20 hemisphere?
+8:22 >> Yeah. Um yeah, I think at number one, I
+8:24 think it's early uh in our in even
+8:27 though it feels like we're a few years
+8:28 into this, we are, but it is very early
+8:30 in the sense of like understanding
+8:32 what's possible and and also of course
+8:34 identifying
+8:35 >> some of the risks and things that can be
+8:37 solved. We don't really see a lot of
+8:40 competitors, you know, at this point in
+8:42 terms of, you know, focused on
+8:44 verification, validation, assurance, the
+8:47 things that I've mentioned, you know,
+8:48 making it trustworthy. Um, you know,
+8:51 when I think about it, let me try to
+8:53 like the the thing I said before was C++
+8:57 to Rust, right? So, like you could ask a
+8:59 question like, well, you know, and
+9:02 literally if you go in and you say like
+9:04 go into chat GPT and say like, can you
+9:06 do this in a production environment?
+9:07 Will you guarantee it'll work? It will
+9:09 say, well, yes, but like there's always
+9:11 the butt there. And so, I think the
+9:13 scenario would be like, yes, you could
+9:15 use any code generation tool. um you
+9:18 know you could they could like run an
+9:20 entire repository it could be agentic it
+9:22 could generate you know code PR it could
+9:26 refactor some things it's pretty good um
+9:29 but the the problem becomes like almost
+9:31 a behavior so it's not really just a
+9:34 coding problem it's more of a like
+9:36 behavioral behavioral problem at scale
+9:39 so if the tool succeeds like you know as
+9:42 I said before 70% of the time on like a
+9:44 complex refactoring it could still fail
+9:48 at some level right and be
+9:51 >> you know a scenario where I think you
+9:52 run into challenges right so they can
+9:54 write code but they cannot guarantee
+9:56 that let's say a million lines of C++ or
+10:00 in this case you know let's call it C++
+10:02 legacy C++ that will it will behave
+10:05 exactly
+10:07 >> like it did before once it's transformed
+10:09 and and that is the thing that we're
+10:11 solving and there's a whole bunch of
+10:12 work that goes into making sure that
+10:13 it's guaranteed
+10:15 >> but that is really what we're delivering
+10:16 We're delivering a guarantee or an
+10:18 assurance that it will work. And that
+10:20 that's the difference.
+10:22 >> That's interesting. I I wonder too
+10:24 because you you all always hear a lot of
+10:26 people's answer to this kind of problem
+10:28 you're talking about is human in the
+10:30 loop. Oh, we have a human in the loop
+10:31 here to verify all of this, which you
+10:34 know, frankly, I think people get
+10:36 comfortable in that human in the loop.
+10:37 You know, verification
+10:40 decreases as as time goes on. But I
+10:42 think that the bigger point is though I
+10:44 mean this is a process in a system like
+10:46 anything else and there's natural
+10:47 bottlenecks and I think that the
+10:50 bottleneck is shifting in many ways to
+10:53 that human in the loop. So it's like as
+10:55 this just completely progresses and
+10:58 scales like how do you think about human
+11:00 in the loop because it's having that as
+11:02 the verification step it almost feels
+11:05 like you have you know a game of Jenga
+11:08 and you're at the very end of it where
+11:10 it's about to topple over and it's like
+11:12 >> yeah I mean I think and perhaps human in
+11:15 the loop you know there's
+11:18 I like to think of this as like you know
+11:21 let's let's unpack a couple things. So
+11:22 the first thing is like you know you've
+11:24 got AI makes everyone's jobs easier.
+11:26 Yes, if used the correct way. I agree. I
+11:28 use it all the time. But happy to talk
+11:29 about that as well.
+11:31 >> And there's a human in you know let's
+11:32 say I've got an engineer and now they're
+11:33 not just writing code let's say for said
+11:36 application. They can be doing other
+11:38 things. They can be thinking a bigger
+11:40 picture. They can be reviewing code. You
+11:42 know is a but what about the hardware
+11:44 right? Because we're not just rewriting
+11:46 software. We're trying to connect it to
+11:48 hardware and do it in a production way.
+11:50 So, you know, we talk about our our kind
+11:53 of our northstar here at Code Metal,
+11:55 which is like how do we, you know,
+11:58 basically make things as pro like we
+12:00 want to make all things programmable,
+12:02 software, hardware, etc. Think of it
+12:04 like a, you know, if you've ever been in
+12:06 like a a Tesla or, you know, full
+12:08 self-driving experience where like you
+12:10 have the ability to ship overthe-air
+12:12 updates, software impacting hardware.
+12:16 That's great. They can do it, but not
+12:17 everyone can do it. And so, I think
+12:19 making sure that it works. Now if I say
+12:21 well okay let's just translate some old
+12:22 code and we'll just have a human review
+12:25 it well what about this process of like
+12:28 we need to analyze the code we need to
+12:30 understand you know and this is of
+12:32 course some component we do want to do
+12:34 test generation so we do something
+12:36 called
+12:37 >> fuzzing concolic testing you go down the
+12:40 list of various things that we include
+12:41 in our suite to make sure that
+12:43 >> it checks every use case it checks the
+12:46 source code is it behaving the same as
+12:47 it is in this new system is checking
+12:50 every edge case. Is it checking for
+12:53 variables that aren't expected? So,
+12:55 there's a, you know, and I'm going to
+12:56 get quickly out of my realm of expertise
+12:58 because I'm not an engineer. We should
+13:00 put a little caveat on this, but the
+13:02 point is we're going a bit deeper to
+13:04 make sure that you can count on it
+13:06 ultimately at the end of the day. And
+13:08 that includes in addition to human in
+13:10 the loop, it's hardware in the loop. So,
+13:11 we want to be testing hardware
+13:13 continuously. It's a big part of like
+13:15 when I walked into one of our offices at
+13:16 first, I'm like, "Wow, there's all this
+13:17 like hardware. It's a different world,
+13:20 right? And so, how do we make things run
+13:22 efficiently, you know,
+13:25 >> from a a small device to a mission
+13:27 critical device and do it in a safe way?
+13:30 >> Wait, you lost me at f was it fuzzing?
+13:33 Was that I've never heard of that term.
+13:35 [laughter]
+13:35 >> Yeah, I will, you know, think of it like
+13:38 um what are the different edge cases
+13:40 that could be a problem, right? And so,
+13:42 it tests every different way. And we use
+13:44 this thing called formal methods, which
+13:46 is another word for math. Like there's a
+13:48 lot of this is my learning curve which
+13:49 is like okay what does this mean? How do
+13:52 I you know trying to bring it all to uh
+13:55 English so that I like to say how can I
+13:57 make sure my parents can understand what
+13:59 I'm working on? That's my uh my intent
+14:01 and my goal as we talk about these
+14:02 things.
+14:03 >> Yeah, that's a good north star. But like
+14:05 and this is separate but how amazing is
+14:08 it like that you have AI as this partner
+14:10 to like help guide you as you learn? I
+14:14 think just just such a cool premise in
+14:15 general. But you mentioned uh you
+14:18 mentioned like you're you're leveraging
+14:20 AI. Like I'm curious uh yeah companies
+14:24 right now especially newer companies are
+14:27 growing in a totally different way
+14:30 because they have AI at the beginning
+14:32 versus existing companies going through
+14:34 their own innovators dilemma of how do
+14:36 we apply this to our existing business.
+14:38 I'm curious like how are you a as an
+14:41 executive leveraging AI? I think that's
+14:44 super interesting for our audience. But
+14:46 also from a business context, how is AI
+14:50 being leveraged? Whether it's an
+14:52 operations,
+14:53 uh it could be anything, sales,
+14:54 marketing, operations, name your
+14:56 function of the business. Anything that
+14:58 kind of sticks out in your mind, either
+14:59 daily use or within the business.
+15:01 >> Yeah. Um you know, I it's funny because
+15:04 we we talk about this. We're a small
+15:06 company, you know, we're still under 100
+15:08 employees. Um but we you know we look at
+15:13 the opportunity you know so we don't
+15:14 have like I was in theory one of the
+15:16 first business people non-engineers in
+15:18 the company we have a lot more now
+15:21 >> but we can do a lot more than we could
+15:22 have you know if we had started this
+15:24 company in like you know 2000 or 2010
+15:27 like even it's a it's a different world
+15:29 so I think you know we use you know
+15:30 whether it be you know even things like
+15:33 an M&A pipeline or you know recruiting
+15:36 and screening candidates more quickly
+15:38 like it accelerates a lot of what we can
+15:40 do. Um or hey, give me an opinion. I
+15:43 wrote something, you know, maybe I want
+15:44 to post it on LinkedIn or wherever I
+15:46 want to post it. I don't have a marketer
+15:48 yet. So, hey, I need some can you help
+15:50 me just like think through or give me
+15:52 perspective. But again, I'm not going to
+15:53 just take exactly what it says.
+15:55 >> I want to make sure that it's like
+15:57 verified. Again, it's the same premise.
+15:59 It's like, can I trust what is in here
+16:02 and how do I actually go through it?
+16:03 It's like you know in in the past you'd
+16:06 ask many different people before you
+16:08 maybe would make a decision. It's a
+16:09 similar thing. It accelerates that
+16:11 process. Um I do think that you know and
+16:13 of course there's I think we found with
+16:15 the code generation tools is like you
+16:17 know if I'm building a simple
+16:18 application or a SAS application or
+16:20 whatever it may be I can get started and
+16:23 advanced really quickly. If I'm where we
+16:25 shift from that into a world where I
+16:27 just say like let's be careful. Let's
+16:29 make it sure it's trustworthy is we're
+16:31 gonna convert legacy code to modern
+16:34 code. Let's say it's a million lines
+16:35 like I said before it has to behave the
+16:37 same if it's going to let's say
+16:39 >> you know impact a uh you know an
+16:42 autonomous vehicle right whether
+16:44 especially in a military environment
+16:46 like go down the you can just see how
+16:47 this can spiral out of control very
+16:49 quickly. Um, and so I I think that every
+16:53 business right now needs to be using AI
+16:55 internally to run its operations. You
+16:57 know, like, hey, I have built a cash
+16:59 flow statement. Hey, does this look
+17:01 right or maybe it can build it for you?
+17:04 Like those are all great things, but you
+17:05 can't just like send it out. Like I
+17:07 think that's the the message I would
+17:08 want to tell people like absolutely if
+17:10 you're not using AI, the companies that
+17:12 aren't will lose to the companies that
+17:14 are, but uh be careful is sort of the
+17:17 intent, especially at this stage.
+17:19 Yeah. Yeah, there's definitely nuance
+17:21 about it. And I feel like the only way
+17:24 to get good at understanding the nuance
+17:26 is is just by using AI a lot. Like I
+17:28 always go back to the Shopify CEO
+17:30 talking about
+17:31 >> he has given a mandate for his team to
+17:34 you use AI reflexively just like it's
+17:36 just second nature. And then you do
+17:38 start to get it's the nuance it's the
+17:42 taste element of like okay I can use AI
+17:44 here or I know to push here. Like I I
+17:46 don't know about you, but I've been
+17:48 completely clawed code pill over the
+17:51 past several several months and you know
+17:54 I was a very early OpenAI chatgbt
+17:58 uh adopter and I went through this
+17:59 period of using both and now I've kind
+18:01 of shifted over. I I still use both but
+18:04 I I went through this exercise with our
+18:06 quarterly planning. I had it hooked up
+18:08 to our CRM and all the other data and
+18:10 had memory for everything we do and I
+18:13 just had it build the full report for
+18:15 me. But to your point earlier, it wasn't
+18:17 just like, okay, there's the report, go
+18:19 like I went through it and I I found
+18:22 some interesting insights that I hadn't
+18:24 even noticed or thought of, which was
+18:27 just this really cool experience. And
+18:30 like another one, we have it hooked up
+18:32 with again our our CRM and Slack and
+18:35 whatnot. and it's going through there
+18:36 and identifying, okay, what what
+18:38 prospects should we be following back up
+18:40 with that we haven't talked with in a
+18:42 while or something's happened and it's
+18:44 just giving us this regular report with
+18:45 a a you know a score attached to it and
+18:49 we now just have it like running and
+18:50 doing its thing. So it's just once you
+18:53 see
+18:54 >> the possibilities it's like oh my god
+18:56 there's so much I can do with this.
+18:58 >> Yeah. Yeah, I think that there we're in
+18:59 the inning of perhaps, you know, or the
+19:02 stage of seeing all the possibilities,
+19:05 right? And then I think, you know, like
+19:06 we've identified code as one area where
+19:08 it is real and relevant and very very
+19:10 useful. You know, I still think like I'm
+19:12 still trying to work whether it's, you
+19:14 know, Claude or pick your I'm like, hey,
+19:16 schedule a meeting. It's not quite my
+19:17 assistant yet. It's not quite perfect.
+19:19 It's getting better every day. You know,
+19:21 schedule a meeting, do this. It's like,
+19:23 well, I can't access your calendar or
+19:24 well, I can't do this or well, I
+19:26 scheduled it on the wrong day. So, we're
+19:28 getting there, but I think it it's
+19:30 education. It's just like what we're
+19:32 talking about here, like why am I doing
+19:33 this? It's because we there's an
+19:34 opportunity to educate and make sure
+19:37 that, you know, not only impact the
+19:39 business, you know, or like, you know,
+19:41 we work a lot with various forms of our
+19:43 government. You know,
+19:44 >> it's pretty mission critical that things
+19:46 are done right. Right. It's pretty
+19:48 mission critical that, you know, we're
+19:50 making sure that if there's a drone in
+19:51 the air or there's a a tank or whatever
+19:53 it is that's being operated in a safe
+19:55 way that is dependable. Um, and that is
+19:58 a big opportunity, but not everyone
+20:00 understands this. So, you can't just
+20:01 assume like, you know, if it sounds too
+20:03 good to be true, I always feel it
+20:05 probably is, right? That's a saying from
+20:06 the past. So, just check your work.
+20:09 >> Y maybe a theme, you know?
+20:11 >> Well, 100%. And and it definitely
+20:14 applies. I'd be curious though like what
+20:17 you can tell us like what are some cool
+20:19 use cases where you're starting to apply
+20:22 your approach, your methodology, your
+20:24 tooling with specific customers?
+20:26 Obviously, I'm sure some of the the
+20:28 government ones you can't go as deep on,
+20:30 but are there any interesting ones that
+20:31 are
+20:32 >> worth noting?
+20:33 >> Yeah, I mean maybe the um the one I
+20:35 mentioned before is a customer. It's one
+20:38 I can't mention the name yet uh soon but
+20:41 the one where they basically had come to
+20:43 us and said you know we have over a
+20:45 million lines of legacy
+20:47 uh C++ code that they needed to basic
+20:51 they needed to basically um translate
+20:54 and modernize but using the same system
+20:57 the same hardware that they've used. So
+21:00 it's kind of like it's sort of like I
+21:01 want to rewire a city but I don't want
+21:03 the power to go out.
+21:05 >> Yeah. Yeah. So, okay, well, how do I do
+21:06 that without I mean, it's impossible.
+21:08 So, this is like an impossible task that
+21:10 all of a sudden we're like, well, we can
+21:11 do this in like a couple weeks. It's not
+21:13 that hard. Um, and we can guarantee
+21:15 it'll work, right? So, a million lines
+21:17 of C++, you know, translated into Rust
+21:20 with zero issues in a very short time
+21:24 frame is basically impossible. Um, and
+21:27 now it is not impossible. I think maybe
+21:28 another example would be, this is the
+21:30 one I have to be even more vague with. I
+21:32 apologize. We can do this later when we
+21:34 can talk more about it. But you know,
+21:35 think of like a department of defense or
+21:37 department of war. They have bought
+21:40 software and you know various types of
+21:43 software that's been like call it
+21:45 stovepiped or disconnected. Some of it
+21:48 they can use, some of it they can't.
+21:50 Millions and millions of dollars has
+21:52 been spent on this. But at the end of
+21:54 the day, right, they want to make sure
+21:55 like how do they modernize it? You know,
+21:59 they can rewrite it perhaps, but without
+22:03 like spending a bunch more money to
+22:05 revalidate that it's actually working.
+22:07 So there's, you know, let's go through a
+22:09 process of like where I need to
+22:11 translate existing software into a
+22:13 modern maybe more maintainable scenario.
+22:17 Uh, and I want to use that so I can do
+22:19 some simulation for war fighters, right?
+22:21 Um, pick your things, right? The code
+22:24 needs to be translated. needs to be
+22:26 provably correct and then it needs to we
+22:29 need to know that whatever goes in comes
+22:31 out and there's no need to revalidate
+22:33 it. So it's a you know again I'm sorry
+22:34 I'm being vague but like I there's a lot
+22:37 of information that's sort of sitting in
+22:38 different places. We're bringing that
+22:40 all together and providing a simulation
+22:42 environment so they can run real world
+22:44 scenarios and that that is very powerful
+22:46 and really only something that we can do
+22:48 at this point. No, that's that's really
+22:50 interesting because like you've you've
+22:53 been in the business world for some time
+22:55 now. Like how many
+22:57 >> very long very old.
+22:58 >> Yeah. Yeah. How many transformation
+23:01 initiatives get proposed done and they
+23:03 just die on the vine because they become
+23:05 they're too complex. They take too long
+23:07 by the time you get ready to do
+23:09 something things have changed. Like
+23:10 that's that's a re very very real
+23:13 problem. And you mentioned like Tesla
+23:15 earlier. There is this element of like
+23:18 modernization that potentially is
+23:20 possible now because like we talked
+23:22 about earlier the innovator's dilemma. A
+23:24 core part of that is just like there's
+23:26 so much builtup infrastructure and
+23:28 nuance to things and AI can actually
+23:31 help accelerate. I mean that's kind of
+23:33 what y'all are doing in a sense I feel
+23:35 like in in a lot of ways.
+23:38 Yeah. And I was trying to think of
+23:39 another one like Yeah. I think robotics,
+23:44 you know, again, then some of the use
+23:45 cases I give are more like perhaps
+23:47 military focused or defense focused, but
+23:49 that's just a big big area of demand for
+23:51 us at the moment. But, you know, um
+23:54 >> you think about maybe a non-traditional
+23:57 type of environment where there's, you
+23:59 know, let's say some kind of a tank or
+24:02 something that is autonomous, whatever
+24:03 it may be, right? Or drone or something
+24:05 like that. How do we, you know, how do
+24:07 they get more time to think about, you
+24:12 know, what is the environment? Like, you
+24:14 see the environment,
+24:15 >> just like in a in a self-driving car,
+24:16 you see the environment, but how do I
+24:18 get more time to react?
+24:20 >> Um, and and how do I do that in a way
+24:23 that is
+24:24 >> safe and accurate? Like very important
+24:27 to be accurate in that environment. So,
+24:29 you know, I want to compute, let's say,
+24:31 the the scene or sort of the visual
+24:34 faster. so that that that the object can
+24:37 have a safer ride at higher speed gives
+24:41 the the you know the machine more time
+24:43 to react. That can only be done um you
+24:47 know if they trust the output, right?
+24:49 And so if they don't trust the output
+24:50 obviously they're not going to do it.
+24:51 And so that it's these are the types of
+24:53 things that are very like you know very
+24:56 critical. That's why we say
+24:58 missionritical. Um
+25:00 >> we're not focused on the non-m mission
+25:02 critical things. These are like things
+25:03 that are very very important. They, you
+25:06 know, failure can be catastrophic in
+25:08 potentially any of these examples.
+25:10 >> Yeah. And you mentioned a few times the
+25:12 word like guarantee where you can
+25:14 guarantee something like how do you that
+25:16 word carries like a lot of weight like
+25:18 how do you think about that in the sense
+25:20 of your your business and whatnot as
+25:24 especially I mean when the stakes are
+25:25 this high you you almost need that uh in
+25:28 a sense.
+25:28 >> Yeah. I mean we think about it as the as
+25:30 assurance. Uh you know we try to talk to
+25:34 our customers about outcomes. You know
+25:36 how do you
+25:38 >> in a world where you know and and this I
+25:41 think is something that we could talk
+25:42 about for for a long time which is how
+25:44 do you price these things like how do
+25:46 you go through the process of
+25:48 >> you know making sure the customer sees
+25:49 value. Well, when I can take a million
+25:51 lines of of, you know, do the
+25:53 impossible, right, which I said before
+25:55 is take a million lines of C++ and
+25:58 convert it to Rust without changing
+26:00 behavior and it runs in the same system.
+26:01 It's highly valuable.
+26:03 >> Uh, and we can guarantee your proof that
+26:06 it will work, right? Prove is even a
+26:08 stronger word than than guarantee,
+26:10 right? Because we're it's provable like
+26:12 >> so it's a verifiable proof that you're
+26:14 you're doing in these test environments
+26:16 and things like that. It's not just like
+26:18 uh satisfaction guaranteed. I put the
+26:20 stamp on it. It's good to go. Like
+26:21 there's there's something tangible
+26:24 behind it is
+26:24 >> correct. And we can show those results,
+26:26 right? So we can say, hey, we will show
+26:28 you that it works. And that is where
+26:30 this becomes quite valuable. And if I
+26:32 can say, hey, this would have taken you,
+26:33 you know, I don't know, 50 to 100
+26:36 developers for two years. Well, there's
+26:37 a cost to that. And then what are they
+26:39 not working on that they could be
+26:40 working on? We can just do this for you
+26:42 in a few weeks.
+26:43 >> Yeah.
+26:44 >> It's a different world. And that that's
+26:45 where I think That's why like code
+26:47 generation and that's why I really like
+26:49 all these, you know, the open AIs, the
+26:51 anthropics, etc. the the cursors,
+26:54 they're all part of the same thing.
+26:55 They're just doing it at a different
+26:57 >> like a different stage, if you will. Um,
+27:00 we're very focused on
+27:02 >> provability, assurance, verification,
+27:04 validation, and delivering that last
+27:05 mile, which I think is pretty important.
+27:07 And it's just maybe not in the top of
+27:09 everyone's mind because we're still in a
+27:10 mode of like, oh, I can I can write a
+27:13 blog post faster and I can write, you
+27:14 know, I can build a time and expense app
+27:16 like really quickly. Those are all great
+27:18 examples, too. Um, we're sort of over on
+27:22 this other spectrum, which is like we
+27:24 want to make sure that we're safe and we
+27:25 want to make sure that there are no
+27:27 catastrophic issues that happen.
+27:29 >> That's why it's attractive to me.
+27:31 >> I'd be curious your take on this. It's
+27:33 like the accountability
+27:35 uh aspect of it because AI is not like a
+27:38 human to where it can be responsible and
+27:40 accountable. Um but as things as it
+27:43 becomes more missionritical and
+27:45 foundational
+27:46 um wait where do you see that
+27:48 accountability element going? I could
+27:50 see like entire insurance markets
+27:52 starting to emerge around this and
+27:54 there's, you know, obviously business
+27:56 insurance that already exists, but I
+27:58 feel like there's this new element
+28:00 that's that's going to be introduced
+28:01 where, okay, well, the AI is at fault in
+28:05 some way. What what happens then? I'm
+28:07 just curious like, how do you think
+28:08 about accountability? Uh, and this may
+28:11 not necessarily specific to code metal,
+28:13 but I think it's going to be a bigger
+28:15 and bigger topic as we keep progressing.
+28:17 >> Yes.
+28:19 Um, it's a really interesting question.
+28:21 I think that, um,
+28:25 I feel like there, you know,
+28:29 there's two ways to just to to look at
+28:31 this, which is like there's probably a
+28:33 group, and again, there's a lot of media
+28:35 attention on everything we talk about
+28:37 with AI. There's probably a group that
+28:38 will say it's more dangerous, right?
+28:40 Because it could make a mistake.
+28:42 >> Well, humans can make mistakes, too, by
+28:44 the way,
+28:44 >> right? We know this. Humans can
+28:46 hallucinate. Maybe we wouldn't call it
+28:47 that, but we know that you may get the
+28:49 wrong answer.
+28:50 >> But if we can prove that something
+28:52 works, right? But that's not really
+28:54 talked about. It's just like, well, AI
+28:56 is amazing, and it is.
+28:58 >> But when we can prove it works with, you
+29:00 know, in our case, we do it for mission
+29:02 critical environments. But in let's say
+29:04 any environment, if we can prove that
+29:06 something can work using maybe it's what
+29:08 we do or some other technology,
+29:11 you should be able to assign
+29:12 accountability to it.
+29:14 >> It's just going to take time. It's going
+29:15 to take education. Back to my earlier
+29:17 point, it's like we need to educate the
+29:20 risks, how it works, how you can prove
+29:23 it works, and where you shouldn't use
+29:26 it. Like, you know, we we know we
+29:28 shouldn't use it in certain scenarios.
+29:29 Like, for example, it's not great
+29:31 necessarily at well, I don't want to go
+29:33 down that road because then we'll get in
+29:34 other discussions, but there are things
+29:36 it's better at than things that is maybe
+29:38 not as good at is maybe the way to say
+29:40 that. Coding is one of them. It's great.
+29:42 >> Totally. And I I think one of the best
+29:44 analogies I've heard because it's
+29:46 probabilistic at its core and this this
+29:49 uh ver variability uh very um being able
+29:53 to verify it is a whole another element
+29:55 I haven't considered. So my mind's kind
+29:56 of like opening to this new concept.
+29:59 >> Think of this think of this like we call
+30:01 it verification and validation. VNV you
+30:04 can't really it's easy to remember V and
+30:06 V like is it verified? Is it validated?
+30:08 Like this is how I look at a lot of
+30:10 these things.
+30:11 >> I like that. I like that. But the
+30:12 analogy that I've heard is, okay, if I
+30:14 have a calculator and I put in two plus
+30:16 two and it gives me nine, I throw it
+30:18 away because it's broken. It obviously
+30:20 is not working. But with AI, like if you
+30:22 get an incorrect answer, it doesn't mean
+30:25 it's broken. It may not have sufficient
+30:26 context or there's some other variable
+30:28 there. And the point you mentioned of
+30:30 guess who else, you know, is not always
+30:32 right, humans. Because we're kind of
+30:34 probabilistic beings in a sense, too.
+30:36 We're working off the context, our
+30:38 nature, all all these different factors
+30:40 that play into it. And I think it's just
+30:44 important that
+30:45 >> people view AI in that way. And and it
+30:48 gets back to the point you mentioned,
+30:49 like it's going to make mistakes. Like
+30:50 you have to go into it knowing that in a
+30:53 sense.
+30:55 >> Yeah.
+30:55 >> I mean, I feel like we can all give a
+30:57 hundred examples of where it wasn't
+30:58 quite perfect, but it was still pretty
+31:00 darn good.
+31:01 >> Yeah. Exactly. Exactly. And so that one
+31:04 other point I want to get your take on.
+31:06 You mentioned kind of token usage
+31:08 earlier, but the Uber CTO, I saw him the
+31:11 other day. He basically said they blew
+31:13 through their entire AI budget. Uh, and
+31:16 for context for those listening right
+31:18 now, we're in April. So if you're
+31:19 listening around Christmas time and
+31:20 thinking, "Oh, that's not too bad."
+31:22 We're in April. And he said they've
+31:23 blown through their entire AI budget and
+31:25 they have, you know, 5,000 engineers.
+31:28 92% are now using AI and agents in the
+31:31 coding process. I just feel like this
+31:33 concept of tokens is going to be such a
+31:36 critical
+31:37 part of the business conversation that
+31:39 the you know cost of goods or however
+31:41 you want to think about it. Uh but what
+31:43 what's your thought thoughts on token
+31:46 usage how it applies where it's going to
+31:49 go any any thoughts on that either from
+31:50 your business and use of AI or whatnot?
+31:54 I mean um I like to I come I've seen
+31:58 like many different spectrums right so
+32:00 whether it's the perce
+32:02 tokenization and tokens etc I think is
+32:05 great I think there's an opportunity and
+32:07 I think there's an evolution around um
+32:09 whether it's called outcomesbased or
+32:12 >> uh value delivered and I say that
+32:14 because like let's just say that I you
+32:16 know I'm COO I'm thinking about our
+32:18 usage of AI internally
+32:20 >> y
+32:21 >> do we you know should we have a budget I
+32:23 I think it's more like well if you can
+32:25 demonstrate a a business case or a use
+32:28 case that shows me that you can you know
+32:30 do more with less and be more you know
+32:35 have a better output that's 100% a win
+32:38 right because it's it's not just about
+32:39 it's like budget is one angle
+32:41 >> but it's also hard if you're running a
+32:43 large company having come from one to
+32:45 know like what should I allocate and
+32:47 where do I want to spend yeah
+32:49 >> I think in a world where you have to
+32:50 look at these AI initiatives as almost
+32:53 like and I I'm I don't never thought I
+32:55 would use the word again but like a
+32:57 business transformational scenario which
+32:58 is like okay what the the C++ thing I
+33:01 mentioned before if I'm going to like
+33:04 save let's say you know5 to$10 million
+33:08 but also continue to be able to sell my
+33:10 hardware
+33:11 and because I basically been able to
+33:13 modernize it
+33:15 >> that has a lot of sort of variables
+33:17 included in it that would impact my
+33:19 business and I go back to like I like to
+33:22 They what we try to do is we help
+33:24 companies be compliant
+33:26 or safe is maybe another word.
+33:29 >> We help them go faster
+33:31 and then we help them ultimately be more
+33:33 open. Right. Because and those are
+33:36 things that you can't just say like oh
+33:37 well what's my budget to be safe,
+33:40 compliant, fast and open.
+33:42 >> Yeah. I mean, hopefully that's
+33:43 everything you're thinking about. Um,
+33:45 and and I think that that's really like
+33:47 what we're trying to unlock is AI can do
+33:49 a lot of these things, but if done
+33:50 incorrectly, it can destroy a company,
+33:52 too. We haven't seen enough of those
+33:53 examples yet, but I'm pretty sure
+33:55 they're coming. It's like, oh, I bet my
+33:57 my bet the house on this particular
+34:00 thing using AI and oh, it didn't work or
+34:03 oh, there was some catastrophic thing
+34:05 that happened. We don't want that. We
+34:07 want to do those three things I
+34:09 mentioned and we want to be able to
+34:11 hopefully deliver and and what we're
+34:13 seeing I mean we have customers paying
+34:14 us based on the outcomes that we
+34:16 provide. Um but it's a it's a different
+34:18 world right it's like a different way to
+34:19 think about what is the value how do you
+34:22 calculate or you know sort of quantify
+34:25 what they would have spent otherwise and
+34:27 what is the value being open and
+34:28 extensible right think about chip
+34:30 manufacturers right think about various
+34:33 languages to one particular vendor who I
+34:36 won't name that's dominant uh in others
+34:38 like how do we open the supply chain
+34:40 right that's a big opportunity as well
+34:42 which we're working on
+34:43 >> totally we got another V for the uh the
+34:45 two V's value. So we got what verified
+34:49 uh validating value. So we got the
+34:51 triite to
+34:52 >> market like it.
+34:54 >> Exactly. Exactly.
+34:55 >> Is last thing uh I got for you. So
+34:57 obviously you ran Salesforce, massive
+35:01 company, like you're very adept in the
+35:03 whole SAS ecosystem, but I'm curious
+35:05 like how do you see that world evolving
+35:09 as it's not just humans using the tools
+35:12 like agents are becoming a big part of
+35:15 the users of the tools and I think a big
+35:18 part of it too is like okay well how do
+35:19 we tailor our products and services to
+35:22 this new class of user which is AI in a
+35:25 sense. Mhm.
+35:27 >> Yeah. Um I mean like I mentioned with
+35:30 the other thing we talked about is
+35:31 there's definitely a lot of media
+35:33 attention and I think gen you know story
+35:35 generation it's like SAS is dead or SAS
+35:38 is this or that. I still use these
+35:41 tools. Uh, and you know, it's not just
+35:43 because I work with Salesforce, but like
+35:44 we just got off a forecast call. We're
+35:46 using Salesforce. You know, there's
+35:48 >> use Tableau, like we use all these tools
+35:50 on a regular basis or maybe you know,
+35:51 workday or other tools. Like they're not
+35:53 going away. They're in fact getting
+35:55 better in my mind. Um, now does the
+35:57 market value them differently? I think
+36:00 they're trying to because they don't
+36:01 exactly know how to value them in a new
+36:03 world, right? There are new new things
+36:05 coming at them. you know, what's the
+36:07 long-term cash flow scenario? Like, of
+36:09 course, like, you know, there's there's
+36:11 questions, but I I look at these things
+36:15 as they're critical systems that are are
+36:18 also evolving. I mean, having come from
+36:20 Tableau and seeing, you know, things
+36:23 like Tableau next or Slackbot or other
+36:25 things which are great technologies,
+36:27 they're evolving, too, right? So, I
+36:29 think the companies and there are a lot
+36:30 of them that are all evolving, those are
+36:32 going to be great. the ones that aren't
+36:34 evolving, those ones I might be a little
+36:36 worried about. Um, you know, as it
+36:38 relates to, you know, I think many of
+36:40 them are trying to switch their pricing
+36:42 models, etc. How the public markets
+36:43 value them, I guess, is it's hard to
+36:46 know what the public markets are going
+36:47 to do in my opinion.
+36:48 >> Yeah. Well, I think your point's spot on
+36:50 because at the end of the day, stock
+36:51 price and valuations based on the
+36:53 prediction of or certainty of future
+36:55 cash flows, I think the market's just
+36:58 uncertain right now. It's not that it's
+37:00 not going to be there. there's just a
+37:02 lot of uncertainty and you see that
+37:04 playing out in the stock price for
+37:05 example but like the example and not to
+37:07 go deep on Salesforce but you mentioned
+37:10 Slack like it's getting almost a new
+37:13 rebirth because like this is this new
+37:15 conduit to talk to AI and agents so
+37:18 there's this completely new use case
+37:20 that never existed before that's like oh
+37:22 and I think every business I don't know
+37:25 if you have any thoughts on this but I
+37:26 feel like every business needs to go
+37:27 through that exercise of okay what what
+37:30 is enabled for us or how may users or AI
+37:34 use our products in a different way now
+37:37 that we have this new thing. I don't
+37:38 know if you have any thoughts or
+37:41 frameworks or approaches or is it just
+37:43 you know get everybody together and see
+37:46 see how they're using tools in unique
+37:48 ways.
+37:50 >> You you mean internally is that I just
+37:52 want to make sure I understand the
+37:53 question. It could be internally or I
+37:54 think just your products and services in
+37:57 general like how could they be used in
+37:59 unique ways or you know existing
+38:01 companies. We have a lot of uh existing
+38:04 enterprise listeners and whatnot and
+38:06 they're thinking like okay how do I
+38:08 evolve my product and where does my
+38:10 strategy go? And I think part of it's
+38:14 how do you tailor it to this new new way
+38:17 of working in a sense.
+38:19 >> Yeah. I mean I really I think it just
+38:21 depends on what your goals are at the
+38:23 end of the day. I mean you know we we
+38:25 use uh like we use Salesforce not just
+38:28 for sales but we also of course think
+38:29 about it like where are we tracking our
+38:30 M&A opportunities or wherever it may be.
+38:32 So um what I what you said about like
+38:35 the Slack scenario I think is
+38:36 interesting because it now becomes like
+38:38 that interface for
+38:40 >> all of these you know whether it's CRM
+38:42 related things or things that are
+38:43 outside you know um a lot of different
+38:45 use cases.
+38:47 So last thing for you if a business
+38:49 leader you know taking one thing away
+38:51 from this conversation
+38:53 uh between like you know AI hype and
+38:56 what's real what what's that one piece
+38:58 of advice you're given to leaders
+39:00 listening right now that are worried
+39:03 excited confused whatever whatever
+39:05 analogy you want to give it.
+39:08 >> Yeah. Um, you know, I think, um, I'm
+39:12 going to go back to kind of a little bit
+39:14 of a thing that I think about a lot,
+39:16 which is and I try to talk about with
+39:17 our team, which is there's a real
+39:19 opportunity to leverage AI in a way that
+39:23 can accelerate not just your company,
+39:25 but your your you know, personal goals
+39:27 like at the end of the day, but you just
+39:28 have to know where it's best to use it
+39:30 and where it isn't. I think the biggest
+39:32 risk for people andor companies and or
+39:35 you know nations ultimately is to not do
+39:38 anything um right or be afraid of it. A
+39:41 lot of this like the best way to learn
+39:43 these tools is to use them try them all
+39:46 right compare the results. I mean I was
+39:48 doing this the other night where I was
+39:49 like okay I you know I haven't hired all
+39:52 of the team members that I want yet. I'm
+39:53 trying to, but I need help with, you
+39:55 know, scheduling certain things and
+39:57 setting certain things up and I'm, you
+39:58 know, got my Claude code and or Claude
+40:01 for work. I've got these other things
+40:03 running and I'm testing them all. Open
+40:05 AAI, you know, good on the list of
+40:06 various tools. Some do things better
+40:08 than others, right? Well, and then I'm
+40:10 wondering, well, why doesn't this work?
+40:12 It should work, right? Things that
+40:14 aren't quite perfect yet, but it evolves
+40:16 so quickly, which is great because if
+40:18 you check back in a week, it'll probably
+40:20 be doing a better job than it did last
+40:21 week. And so be aware, educate yourself,
+40:26 talk about these things, you know,
+40:27 listen to more stuff like your podcast
+40:29 here and others I think are all
+40:30 important things. Like the learning
+40:32 curve is steep. Um, and if you take a
+40:35 break from it or like I'm good, I don't
+40:36 need to use this stuff right now. I
+40:38 think those are the those are the people
+40:39 andor the companies that I think are
+40:41 going to be perhaps behind uh and maybe
+40:44 not in position to uh to take the lead.
+40:48 >> Great advice. So So listen to the
+40:50 podcast. If something doesn't work, come
+40:52 back in a week and try it again, which I
+40:54 think is very true.
+40:55 >> That's what I do
+40:56 >> in today's age.
+40:58 >> Ryan, thanks for being on talking AI.
+41:00 So, where can people find you, learn
+41:01 more about Code Metal, or I guess maybe
+41:03 uh sounds like you have some openings as
+41:05 well. You're looking for some some
+41:07 people.
+41:07 >> We're hiring a lot of people. Uh yes, we
+41:09 are rapidly growing and um you know, if
+41:12 you're out if you're really thinking
+41:14 about the opportunity to make AI more
+41:16 trustworthy, I think we're a great place
+41:17 to be. Um, I guess code metal.com is
+41:21 kind of where we are. We don't yet have
+41:22 a conference or anything, but we'll uh
+41:24 we'll be communicating more soon once we
+41:26 get our marketer on board.
+41:28 >> Awesome. Brian, thank you for talking
+41:30 AI.
+41:30 >> All right. Thank you. Have a great one,
+41:32 Matt.
+41:33 >> Thanks for listening to the Talking AI
+41:34 podcast. If you enjoyed the show, give
+41:36 us a follow or subscribe on your
+41:38 favorite podcast platform. And don't
+41:39 forget to leave us a review. We love
+41:41 those. For more info on Talking AI,
+41:44 visit talkingipodcast.com.
+41:48 Quick break in the pod. If you're
+41:50 listening to this podcast, chances are
+41:52 you've been thinking about how to
+41:53 actually use AI inside your business.
+41:55 And that's exactly why we built the AI
+41:57 opportunity finder. It's a free tool
+41:59 that helps you uncover high impact
+42:01 tailored AI use cases based on your
+42:04 business, your goals, your pain points,
+42:06 and your industry. No fluff, no generic
+42:08 use cases, just real ideas that fit your
+42:11 business. And they're ranked by ROI
+42:13 potential. It takes about three minutes
+42:14 to run and it's like having your own
+42:16 personal AI strategist for free. If you
+42:18 want to try it for free, check out the
+42:19 link in the show notes or go to
+42:21 hatchworks.comi-oportunity-finder.

@@ -1,0 +1,420 @@
+0:00 You have your college education or
+0:02 coding boot camp, you know, and that's
+0:03 your vector database of knowledge,
+0:05 right? Um, and it's all nice and
+0:07 structured from your course work [music]
+0:08 and your tests and everything else like
+0:09 that. And then there's um, everything
+0:12 you learn on the job. And that's
+0:13 episodic memory. And that's primarily
+0:15 what we're focusing on.
+0:24 Hi everyone. [music] I'm Taki Jaffri,
+0:26 lead product for UiPath enterprise
+0:27 agents. And I'm joined here today by
+0:29 Scott Fiorentino, one of the engineers
+0:31 working on agents. Welcome Scott. Taki,
+0:34 thanks for having me.
+0:35 Okay, Scott, so why don't you walk us
+0:37 through all the different areas you work
+0:38 on? Sure. So I
+0:40 uh, lead agents online reliability at
+0:42 UiPath. Uh, that's primarily comprised
+0:44 of evaluations, simulations, and memory.
+0:47 Wonderful. It'll be an exciting chat.
+0:49 Um, so let's start with evals. So what
+0:53 are evals and why should we evaluate
+0:55 agents? Yeah, so evals are test cases
+0:58 for your agent. And testing in software
+1:00 has been around since its inception.
+1:03 Um, and evals are are just
+1:05 uh, the next evolution of that. Evals
+1:07 are a way to verify um,
+1:10 your agent's results as well as the
+1:12 steps it took to get there. I think they
+1:14 differ a little bit from regular
+1:16 software testing because rather than
+1:17 doing exact matching,
+1:19 um,
+1:20 agents are a little bit
+1:21 non-deterministic. They might not
+1:22 produce the exact same result every
+1:24 single time. And evaluations give you
+1:26 the ability to
+1:28 um, account for that. They give you the
+1:29 ability to inspect meaning. They give
+1:31 you the ability to inspect
+1:33 um, and verify context precision and
+1:35 faithfulness, which is if your agent got
+1:37 something from a knowledge base or a
+1:39 vector database or a document,
+1:41 um, did its answer come from that
+1:43 document or did its answer kind of get
+1:44 hallucinated, right? So um, in addition
+1:46 to just verifying results, we're
+1:48 verifying uh, how you got there and
+1:51 whether not it was faithful to the
+1:53 trusted information that it has access
+1:54 to.
+1:55 Okay, great. So in the UiPath agent
+1:57 builder or if I'm using UiPath coded
+2:00 agents,
+2:01 uh, walk me through like what are the
+2:02 steps as a developer that I need to do
+2:04 if I'm starting from scratch to evaluate
+2:06 my agent? Yeah, so there's probably
+2:08 three main concepts that you should
+2:09 consider.
+2:10 Um, there's evaluation sets or data sets
+2:13 and those are all your different test
+2:14 cases. There's your individual
+2:16 evaluations or individual test cases,
+2:19 right? And then there's your evaluators.
+2:22 And those um,
+2:23 allow you to
+2:25 grade or evaluate different aspects of
+2:27 what the agent did. So I talked about
+2:29 context precision and faithfulness. So
+2:31 those are different evaluators. You
+2:32 could have
+2:33 um, an evaluator on a certain uh, field
+2:36 of the agent's output. Um, there's also
+2:38 different types. There's deterministic
+2:39 evaluators. You could do an exact match
+2:41 or a contains or a rejects, something
+2:43 like that. Or you could do an LLM as a
+2:45 judge evaluator. And those are really
+2:46 powerful because you can ask the LLM as
+2:49 a judge to look for tone. You can ask it
+2:51 to look for um, formatting, um, certain
+2:54 content that you're expecting, right? It
+2:56 can be a bit more flexible um,
+2:58 than just exact matches and things like
+3:00 that. Wonderful. So um,
+3:02 I guess like all testing, what really
+3:05 matters is the quality of your tests. So
+3:07 in the case of these agents, these
+3:09 evaluation sets, uh, these data sets,
+3:12 uh, how do I go about creating it? How
+3:14 about how do I make sure it's a good,
+3:15 rich evaluation set? Yeah, so we have a
+3:18 couple tools available to do that. Um,
+3:20 so we have the our agent health score.
+3:21 So that's kind of a one-click option to
+3:23 analyze your entire agent and look at
+3:26 your prompt and look at your evaluations
+3:28 and comment on, you know, how many
+3:30 evaluations do you have? Um, do they
+3:32 match the schema of your agent? We're
+3:34 adding a bunch new capabilities to that
+3:36 um, to look at, hey, maybe there's
+3:37 scenarios that you may have missed. Um,
+3:39 we also have a generation feature. And
+3:41 the generation feature will analyze your
+3:42 prompt and look for relevant test cases
+3:46 um, based on what your agent's trying to
+3:47 do. So our goal is, you know, testing is
+3:50 is always been a challenge in software.
+3:51 It's it's typically been something
+3:52 that's very tedious. It sometimes takes
+3:55 more time than writing the code itself.
+3:56 Our goal is to make that a lot easier
+3:59 uh, when you're building agents in
+4:00 UiPath. And we have a lot of tools uh,
+4:02 available to make that simpler. So um,
+4:04 you can create test cases on your own.
+4:07 You can generate them uh, with the help
+4:09 of an LLM and then tune them after
+4:10 they've been generated. Um, you can also
+4:12 add evaluations from production runs.
+4:15 Just like we see things out in the wild,
+4:17 you know, you have bugs that happen in
+4:18 production with your software. You can
+4:19 take that that repro, if you will, and
+4:21 turn it into a test case and turn it
+4:22 into an evaluation with a single click.
+4:24 Wonderful. And uh, speaking of analogies
+4:27 from software testing, there's the
+4:28 so-called black box testing. Um, so do
+4:31 you think about the agent simply from
+4:34 like inputs and outputs perspective or
+4:36 do you also uh, peek inside and like
+4:40 look, evaluate how the agent actually
+4:41 got to the answer? Yeah, good question.
+4:43 So you can do both. So similar to how,
+4:45 you know, you might um,
+4:47 mock your dependencies and then verify
+4:49 that your dependencies got called with
+4:50 traditional software mocking frameworks,
+4:52 you can do the same thing with what's
+4:53 called a trajectory evaluator. And so,
+4:56 you know, obviously we want to make sure
+4:57 that the agent's output is correct, but
+4:59 we want to make sure that it took the
+5:00 right steps to get there and there
+5:01 wasn't some inherent knowledge in the
+5:03 model or some kind of hallucination um,
+5:05 that got it to that point. So, you know,
+5:07 in addition to context precision and
+5:09 faithfulness and making sure your agent
+5:10 doesn't hallucinate, we also want to
+5:12 make sure that it went to the right
+5:13 sources and did the right things and
+5:15 consulted with the right people to get
+5:17 to the right answer. Mm. Good.
+5:19 So now um,
+5:21 I think let's talk a little bit about
+5:22 simulations because uh, as you
+5:24 mentioned, these agents might be calling
+5:26 all these tools, might be escalating to
+5:28 some humans. Uh,
+5:30 it could take a long time uh, for the
+5:32 agent to come back with the answer. So
+5:34 how do simulations help me uh, evaluate
+5:37 my agent rapidly and with all these rich
+5:40 permutations and combinations? Right.
+5:42 So, you know, similar to um, my comment
+5:44 earlier about making evaluations uh,
+5:46 really easy and rapid as you're building
+5:48 out an agent um, and trying to take the
+5:50 pain out of testing, right? And that's
+5:51 been in traditional software. Um, we
+5:53 allow to use this feature called
+5:54 simulations. And what that does is that
+5:56 simulates tool calls and escalations
+5:58 that the agent would otherwise make
+6:00 during its execution. So maybe these
+6:02 tools are expensive to run. Maybe they
+6:04 mutate external state that you don't
+6:06 really want to be doing. Um, maybe you
+6:08 don't have access to those tools yet.
+6:09 Maybe it's a system in production that
+6:11 you don't have access to and maybe you
+6:12 don't have uh, access to that system in
+6:14 a dev environment. Maybe there's failure
+6:16 conditions that you want to very easily
+6:18 simulate. Um, so you could describe
+6:20 these failure conditions. You could
+6:21 describe these inputs
+6:23 um, and we'll generate um,
+6:25 proper values that are faithful to that
+6:27 and and the agent will run against them.
+6:28 And when you use simulations, it's the
+6:31 real agent running. The only thing that
+6:33 changes is the tool call information. So
+6:35 you can be confident that, you know, if
+6:37 if I have this particular scenario that
+6:39 I simulated, that same exact agent logic
+6:41 is running against my simulated scenario
+6:43 and it's it's going to be successful in
+6:44 the real world as well. Yeah, and I
+6:46 think that's super powerful because
+6:47 you're not just simulating individual
+6:49 tool calls, you're simulating the entire
+6:52 trajectory. So the simulator, uh, which
+6:54 is also another model, uh, it can
+6:56 simulate for example, what if the first
+6:58 tool call returns correctly, but the
+7:00 second one does something interesting
+7:01 and how does that impact the third tool
+7:03 call? So I think that's super super
+7:05 powerful to describe all these test
+7:07 uh, scenarios for the agent. And this is
+7:09 all, you know, in natural language. And
+7:10 so rather than, you know, setting up
+7:12 boilerplate code and test harnesses,
+7:14 you're just describing in natural
+7:15 language and under the covers, we'll
+7:17 wire up the right schema and the right
+7:18 tool call
+7:20 uh, mechanics to make sure everything
+7:21 works for you.
+7:22 Very cool. So yeah, it's uh, interesting
+7:24 thing to try if somebody wants to try it
+7:26 in the audience.
+7:27 Okay, so now let's talk a little bit
+7:28 about agent memory.
+7:30 What is agent memory and how is that
+7:32 different from fine-tuning the model?
+7:34 I'm glad you asked because um, every
+7:35 time a customer asked me about agent
+7:37 memory, I'm like, what does agent memory
+7:38 mean to you? It means something to
+7:40 everybody, right? ChatGPT and all these
+7:42 apps have memory. So, you know, what is
+7:43 what does it mean to UiPath? Um, so I'll
+7:46 answer your first question on
+7:46 fine-tuning. You know, fine-tuning is
+7:48 about, you know, tuning the weights of a
+7:50 of a model requires a large amount of
+7:51 data.
+7:52 Um, memory is something you can you can
+7:54 start with with just a single piece of
+7:56 data. And how we envision memory is um,
+8:00 it's agents remembering their past
+8:02 interactions and remembering their past
+8:04 actions combined with human feedback on
+8:07 those actions. So there's there's kind
+8:09 of three types of informations agents
+8:11 can can deal with. Um, and I like to use
+8:14 an analogy of like a college student
+8:15 starting a a job at UiPath, right? So
+8:17 you have your, you know, basic
+8:19 understanding of how the world works,
+8:20 right? That's your foundational model.
+8:22 That's your, you know, your GPT, your
+8:23 Claude, um, your Gemini models, right?
+8:26 Um, basic understanding of how the world
+8:27 works.
+8:28 Uh, you have your college education or
+8:30 coding boot camp, you know, and that's
+8:32 your vector database of knowledge,
+8:34 right? Um, and it's all nice and
+8:35 structured from your course work and
+8:37 your tests and everything else like
+8:38 that. And then there's um, everything
+8:41 you learn on the job. And that's
+8:42 episodic memory. And that's primarily
+8:44 what we're focusing on. And what's what
+8:46 I really like about this is that a lot
+8:48 of businesses have tribal knowledge that
+8:51 isn't necessarily written down. And what
+8:54 episodic memory allows agents to do is
+8:57 is learn from that over time.
+8:59 And I talked to a lot of customers who
+9:01 are like, you know, how does the agent
+9:02 get better over time? I want it to learn
+9:03 and get better over time, right? And,
+9:05 you know, agent memory is how you do
+9:06 that. And how it works is when an agent
+9:09 runs, you can provide feedback on what
+9:12 it did and its result. And then what we
+9:14 do is we save that information into our
+9:16 memory space. And the next time the
+9:18 agent runs, it will do a vectorized
+9:20 search to look for similar interactions
+9:23 that it's had in the past. And you can
+9:25 tune all of this and we have tools and
+9:27 evaluations to help you find optimal
+9:29 parameters for this. And we'll insert
+9:31 that um, into the system prompt as
+9:33 examples. Um, and then that will allow
+9:35 the agent to say, okay, you know, I've
+9:36 seen this thing in the past and here's
+9:38 the feedback I got. And there's papers
+9:40 that show that that improves the quality
+9:42 of results. Inserting into the prompt is
+9:44 just the first step. Um, there's a lot
+9:46 of other types of memory where you could
+9:47 reflect on tool calls or escalations
+9:50 that you made. And, you know, you can
+9:52 insert human feedback to any part of the
+9:54 agent trajectory and have it reflect on
+9:57 say, oh, you know, the last time I did
+9:59 this, I got bad feedback. Maybe I should
+10:00 do something else." Um and so,
+10:03 uh we allow you to um infuse feedback
+10:05 and help the agent learn and get better
+10:07 over time as a result. Is the user or
+10:09 the developer in control of managing
+10:11 these memories? For example, if you want
+10:13 to change something, if you want to
+10:14 delete something, etc. Yes. So, there's
+10:16 a couple of things you can do to sort of
+10:18 um see how memory's working and and play
+10:20 with it. Um all the memories go into a
+10:22 memory space,
+10:23 um and you can inspect what's there. You
+10:25 can turn them on and off. You can add
+10:27 and remove them. So, you have full
+10:28 control over uh what's in the agent's
+10:31 memory. You can see it at any time.
+10:33 Any time an agent uses memory, you'll
+10:35 see that in our execution trail. That's,
+10:37 you know, OTEL compliant. We we emit a
+10:39 whole bunch of traces and spans, and you
+10:41 can see, "Oh, you know, on this
+10:42 particular run, the agent looked in its
+10:45 memory, and it used this to try and get
+10:47 a better result." Right? Um in addition
+10:49 to that, uh we have support for um
+10:53 looking at agent memory for evaluation.
+10:55 So, you can run your evaluations both
+10:56 with and without memory, and you can
+10:58 see, you know, whether or not your
+10:59 results improved. So, there's a lot of
+11:00 different tools with memory. Um we're
+11:02 excited for folks to try it out.
+11:04 Wonderful. So, now uh let's start to
+11:06 bring all this together because you
+11:07 shared a lot of great information
+11:09 because
+11:10 one of the things we are proud of at
+11:12 UiPath is that we help developers build
+11:15 enterprise-grade agents. These are
+11:17 reliable agents. They're not just
+11:18 prototypes.
+11:20 Um so, how should people think about
+11:22 evals, simulations, tracing perhaps, and
+11:26 memory as part of their toolkit to build
+11:28 these reliable agents?
+11:30 Yeah, so I I I think, you know, it's
+11:31 very easy to you know, they have this
+11:32 new five-coding term, right? It's very
+11:34 easy to whip up a prototype that's very
+11:35 convincing. Um and then taking that
+11:37 production is very hard. Um and so,
+11:39 UiPath Agent Builder and all the
+11:40 features that we've talked about are,
+11:42 you know, tools in your toolbox and a
+11:44 defense in depth to say, you know, like
+11:45 what I've built is enterprise-grade, and
+11:48 I can go to the business and say, you
+11:50 know, this is automating a problem,
+11:52 right? And this is saving the company
+11:53 dollars and humans. Tying this all
+11:55 together um
+11:57 is a is human feedback, right? So,
+11:59 agents um not only do they, you know,
+12:01 can they run successfully or or fail and
+12:03 error out, they could produce an answer,
+12:05 and that answer may not be correct. And
+12:07 so, um human feedback is a really key
+12:09 part, I think, of of a release cycle,
+12:11 and we've seen customer do this where
+12:13 they'll they'll release an agent out. Uh
+12:15 there was a customer doing medical
+12:16 record summarization, and they they
+12:18 built a an action center app in UiPath,
+12:20 and they would show the summarized
+12:21 medical record, and they would give that
+12:23 to the nurses and and and doctors and
+12:25 say, "Hey, you know, give it you know,
+12:26 provide some feedback on this summarized
+12:28 uh results. Are they correct or not?"
+12:29 And they would use that to um determine
+12:31 if the agent was ready, ready to go or
+12:33 not. And we give you a whole bunch of
+12:34 tools um to visualize that feedback, to
+12:37 take that feedback and create memories
+12:38 out of it, and make the agent better,
+12:40 and give you a signal that, "Hey, this
+12:41 agent's um being received well by the
+12:44 enterprise, uh and it's doing well."
+12:46 Yep. Certainly, prototypes are easy,
+12:47 scale is hard. And one thing that I
+12:50 would add is sometimes, if you're a
+12:52 developer and you're trying to automate
+12:53 a process,
+12:55 part of the approval process to take
+12:56 that automation to production is you
+12:59 need a score. You need to tell the
+13:01 internal stakeholders that, "Look, this
+13:03 thing works 97% of the time or 99% of
+13:05 the time." You need to prove that it
+13:07 works, and all these tools that you're
+13:09 talking about let people do that.
+13:11 Absolutely. Thank you so much, Scott,
+13:13 for joining us. Really enjoyed this
+13:14 conversation.
+13:15 Thank you, everyone. Thank you.
+13:28 >> [music]
