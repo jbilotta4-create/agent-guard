@@ -3,3 +3,11 @@ dist/
 *.jsonl
 .env
 .github-token
+# Exclude workspace files from plugin repo
+memory/
+self-governance-prototype/
+scripts/
+mms/
+*.py
+*.db
+*.leveldb/
